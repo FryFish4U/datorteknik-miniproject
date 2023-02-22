@@ -48,7 +48,7 @@ void user_isr( void )
 /* Lab-specific initialization goes here */
 void labinit( void )
 {
-  volatile int* bigRedArrowE = (volatile int*) 0xbf886100; // Arrow goes to Port E, register TRISE
+  volatile int* PortEPointer = (volatile int*) 0xbf886100; // Pointer points to Port E, register TRISE
   TRISDSET = 0x00000fe0;
   
   T2CON = 0x0; // disables timer before config - necessary

@@ -3,11 +3,11 @@
 #include "mipslab.h"
 
 int getsw(void){
-    int funnyGuy = (PORTD >> 8) & 0xf; // value = switches turned on in binary
-    return funnyGuy;
+    int switchesOn = (PORTD >> 8) & 0xf; // value = switches turned on in binary
+    return switchesOn;
 }
 
 int getbtns (void){
-    int susMan = (PORTD >> 5) & 0x7; // value = buttons pressed in binary
-    return susMan;
+    int buttonsOn = (PORTD >> 5) & 0x7; // value = buttons pressed in binary
+    return buttonsOn;
 }
