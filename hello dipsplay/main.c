@@ -307,46 +307,22 @@ int main(void) {
 	SPI2CONSET = 0x8000;
 	
 	display_init();
-	// display_string(0, "such world");
-	// display_string(2, "much hello");
-	// display_string(3, "many text");
-	// display_string(, "wow");
 
-
-	{
-		/* code */
-	}
-	
-	int i = 0;
-	// while(1){
-	// while (i < (128-32)){
-	// 	display_image(i, ufo);
-	// 	i++;
-	// 	display_update();
-	// }
-	// while (i > 0){
-	// 	display_image(i, ufo);
-	// 	i--;
-	// 	display_update();
-	// }
-	// }
-	int q, w, e = 0;
-	for (q = 0; q < 512; q++){
-	if(127 < q < 256){
-		gameMap[q]= 251;
-	}
-	if (255 < q < 384){
-		gameMap[q]=223;
-	}
-	else 
-		gameMap[q]= 255;
-	}
-	display_image(0,(const uint8_t) gameMap);
-	// for (w=(4+lane)){
-
-	// }
-	display_image(0, ufo);
 	display_update();
 
+	int q;
+	int w;
+	int e;
+	for (q=0; q< 4; q++){			//this loop is for filling the map with numbers.
+		for(w=0; w<128; w++){		//loops if statements to create lines	
+				gameMap[(q*128)+w]= 255;
+		}
+	q=gameMap[charactersLane+10];
+	w=0;
+	for (q ; q< (gameMap[charactersLane+10]+ 19); q++){
+		gameMap[q]= gameMap[q] & ufo[w];
+		w++;
+	}
+	display_image(0, gameMap);
 	return 0;
 }
