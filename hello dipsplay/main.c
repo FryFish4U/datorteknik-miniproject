@@ -1,7 +1,7 @@
 #include <pic32mx.h>
 #include <stdint.h>
 #include <porjectLib.h>
-//#include <sprites>
+
 
 #define DISPLAY_VDD PORTFbits.RF6
 #define DISPLAY_VBATT PORTFbits.RF5
@@ -19,7 +19,6 @@
 #define DISPLAY_RESET_MASK 0x200
 
 uint8_t gameMap[512];		// array for the basic map
-charactersLane = 0;
 
 char textbuffer[4][16];
 
@@ -171,12 +170,6 @@ const uint8_t const icon[] = { // doge 16 x 8 bytes
 	142, 123, 134, 127, 134, 121, 134, 121,
 	132, 59, 192, 27, 164, 74, 177, 70,
 	184, 69, 186, 69, 254, 80, 175, 217,
-};
-
-const uint8_t const ufo[] = { // ufo 
-	239, 	239, 	199, 	135, 	137, 	141, 	158, 	22,
-    146, 	30, 	150, 	18, 	158, 	141, 	137, 	135,
-    199, 	239, 	239,	255,	255,	255,	255,	255, 	
 };
 
 void delay(int cyc) {
