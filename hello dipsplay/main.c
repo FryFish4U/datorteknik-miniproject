@@ -1,6 +1,6 @@
 #include <pic32mx.h>
 #include <stdint.h>
-#include <porjectLib.h>
+#include "projectlib.h"
 
 
 #define DISPLAY_VDD PORTFbits.RF6
@@ -313,14 +313,14 @@ int main(void) {
 	int q;
 	int w;
 	int e;
-	for (q=0; q< 4; q++){			//this loop is for filling the map with numbers.
-		for(w=0; w<128; w++){		//loops if statements to create lines	
+	for(q = 0 ; q < 4 ; q++){			//this loop is for filling the map with numbers.
+		for(w = 0 ; w < 128 ; w++){		//loops if statements to create lines	
 				gameMap[(q*128)+w]= 255;
 		}
-	q=gameMap[charactersLane+10];
-	w=0;
-	for (q ; q< (gameMap[charactersLane+10]+ 19); q++){
-		gameMap[q]= gameMap[q] & ufo[w];
+	q = gameMap [charactersLane + 10];
+	w = 0;
+	for(q ; q< (gameMap[charactersLane + 10] + 19) ; q++){
+		gameMap[q] = gameMap[q] & ufo[w];
 		w++;
 	}
 	display_image(0, gameMap);

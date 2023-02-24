@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <pic32mx.h>
-#include <porjectLib.h>
+#include "projectlib.h"
 
 int getsw(void){ //! bör inte behövas men finns 
     int switchesOn = (PORTD >> 8) & 0xf;    // value = switches turned on in binary
