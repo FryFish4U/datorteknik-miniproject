@@ -17,7 +17,7 @@
 #define DISPLAY_RESET_PORT PORTG
 #define DISPLAY_RESET_MASK 0x200
 
- gameMap[512];
+uint8_t gameMap[512];		// array for the basic map
 int lane = 0;	//make global in header	
 
 char textbuffer[4][16];
@@ -249,7 +249,7 @@ void display_image(int x, const uint8_t *data) {
 		
 		DISPLAY_COMMAND_DATA_PORT |= DISPLAY_COMMAND_DATA_MASK;
 		
-		for(j = 0; j < 128; j++)
+		for(j = 0; j < 128; j++)  //the constant decides how far on the screen we update. 128 means the whole screen.
 			spi_send_recv(~data[i*128 + j]);
 	}
 }
@@ -337,23 +337,28 @@ int main(void) {
 	// 	display_update();
 	// }
 	// }
-	int q, w, e;
-	for (q=0; q<512 q++){
-	if(127<q<256){
-		gameMap[q]= 251;
+	display_update();
+
+	int q;
+	int w;
+	int e;
+	for (q=0; q< 4; q++){
+		for(w=0; w<128; w++)		//this loop is for filling the map with numbers.
+			if(q == 1){
+				gameMap[(q*128)+w]= 251;
+			}
+			else if (q == 2){
+				gameMap[(q*128)+w]=223;
+			}
+			else 
+				gameMap[(q*128)+w]= 255;
 	}
-	if (255<q<384){
-		gameMap[q]=223;
-	}
-	else 
-		gameMap[q]= 255;
-	}
-	display_image(0,(const uint8_t) gameMap);
+	display_image(0, gameMap);
 	// for (w=(4+lane)){
 
 	// }
-	display_image(0, ufo);
-	display_update();
+	//display_image(0, ufo);
+	//display_update();
 
 	return 0;
 }
