@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include "projectlib.h"
+extern int characterLane;
 
 
 //! timers 3 och 5 är reserverade för i fall om 32 bitars timers behövs (då de mergar med timer 2 och 4)

@@ -2,7 +2,8 @@
 #include <stdint.h>
 #include <pic32mx.h>
 #include "projectlib.h"
-#include "checkio.c"
+extern int characterLane;
+
 
 int pressedBtns = -1; // int which getbtns should write to. Must be defaulted to -1 after use.
 

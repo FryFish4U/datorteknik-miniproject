@@ -1,7 +1,7 @@
 #include <pic32mx.h>
 #include <stdint.h>
 #include "projectlib.h"
-
+extern int characterLane;
 
 #define DISPLAY_VDD PORTFbits.RF6
 #define DISPLAY_VBATT PORTFbits.RF5
