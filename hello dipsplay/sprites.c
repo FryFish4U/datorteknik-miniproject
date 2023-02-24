@@ -3,6 +3,7 @@
  #include <stdint.h> 
  #include <pic32mx.h>
  #include "projectlib.h"
+ extern int characterLane;
 
 
 const uint8_t const ufo[] = {
