@@ -1,0 +1,2 @@
+sprites.c.o: sprites.c
+sprites.c :
