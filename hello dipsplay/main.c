@@ -1,5 +1,6 @@
 #include <pic32mx.h>
 #include <stdint.h>
+#include <porjectLib.h>
 //#include <sprites>
 
 #define DISPLAY_VDD PORTFbits.RF6
@@ -18,15 +19,15 @@
 #define DISPLAY_RESET_MASK 0x200
 
 uint8_t gameMap[512];		// array for the basic map
-int lane = 0;	//make global in header	
+charactersLane = 0;
 
 char textbuffer[4][16];
 
-static const uint8_t const font[] = {
+static const uint8_t const font[] = { // 8 x 128 bytes 
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, // hallå
+	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
@@ -153,7 +154,7 @@ static const uint8_t const font[] = {
 	0, 120, 68, 66, 68, 120, 0, 0,
 };
 
-const uint8_t const icon[] = {
+const uint8_t const icon[] = { // doge 16 x 8 bytes
 	255, 255, 255, 255, 255, 255, 127, 187,
 	68, 95, 170, 93, 163, 215, 175, 95,
 	175, 95, 175, 95, 223, 111, 175, 247,
@@ -172,11 +173,10 @@ const uint8_t const icon[] = {
 	184, 69, 186, 69, 254, 80, 175, 217,
 };
 
-const uint8_t const ufo[] = {
-	239, 239, 199, 135, 137, 141, 158, 22,
-    146, 30, 150, 18, 158, 141, 137, 135,
-    199, 239, 239 
-	
+const uint8_t const ufo[] = { // ufo 
+	239, 	239, 	199, 	135, 	137, 	141, 	158, 	22,
+    146, 	30, 	150, 	18, 	158, 	141, 	137, 	135,
+    199, 	239, 	239,	255,	255,	255,	255,	255, 	
 };
 
 void delay(int cyc) {
@@ -337,28 +337,23 @@ int main(void) {
 	// 	display_update();
 	// }
 	// }
-	display_update();
-
-	int q;
-	int w;
-	int e;
-	for (q=0; q< 4; q++){
-		for(w=0; w<128; w++)		//this loop is for filling the map with numbers.
-			if(q == 1){
-				gameMap[(q*128)+w]= 251;
-			}
-			else if (q == 2){
-				gameMap[(q*128)+w]=223;
-			}
-			else 
-				gameMap[(q*128)+w]= 255;
+	int q, w, e = 0;
+	for (q = 0; q < 512; q++){
+	if(127 < q < 256){
+		gameMap[q]= 251;
 	}
-	display_image(0, gameMap);
+	if (255 < q < 384){
+		gameMap[q]=223;
+	}
+	else 
+		gameMap[q]= 255;
+	}
+	display_image(0,(const uint8_t) gameMap);
 	// for (w=(4+lane)){
 
 	// }
-	//display_image(0, ufo);
-	//display_update();
+	display_image(0, ufo);
+	display_update();
 
 	return 0;
 }
