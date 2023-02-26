@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <pic32mx.h>
 #include "projectlib.h"
-extern int characterLane;
+
 
 int getsw(void){ //! bör inte behövas men finns 
     int switchesOn = (PORTD >> 8) & 0xf;    // value = switches turned on in binary

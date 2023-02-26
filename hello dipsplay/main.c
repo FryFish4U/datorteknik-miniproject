@@ -1,6 +1,7 @@
 #include <pic32mx.h>
 #include <stdint.h>
 #include "projectlib.h"
+
 extern int characterLane;
 
 #define DISPLAY_VDD PORTFbits.RF6
@@ -272,6 +273,11 @@ void display_update() {
 }
 
 int main(void) {
+
+	timer2init();
+    // timer4init();
+    enable_interrupt(); // enables interuppts via labwork.s
+
 	/* Set up peripheral bus clock */
 	OSCCON &= ~0x180000;
 	OSCCON |= 0x080000;
@@ -308,21 +314,24 @@ int main(void) {
 	
 	display_init();
 
-	display_update();
+
 
 	int q;
 	int w;
 	int e;
 	for(q = 0 ; q < 4 ; q++){			//this loop is for filling the map with numbers.
 		for(w = 0 ; w < 128 ; w++){		//loops if statements to create lines	
-				gameMap[(q*128)+w]= 255;
+				gameMap[(q*128)+w]= 55;
 		}
-	q = gameMap [charactersLane + 10];
-	w = 0;
-	for(q ; q< (gameMap[charactersLane + 10] + 19) ; q++){
-		gameMap[q] = gameMap[q] & ufo[w];
-		w++;
-	}
+	// q = gameMap [charactersLane + 10];
+	// w = 0;
+	// for(q ; q< (gameMap[charactersLane + 10] + 19) ; q++){
+	// 	gameMap[q] = gameMap[q] | ufo[w];
+	// 	w++;
+	// }
+	display_update();
 	display_image(0, gameMap);
-	return 0;
+	
+	}
+return 0;
 }

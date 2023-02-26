@@ -3,7 +3,7 @@
  #include <stdint.h> 
  #include <pic32mx.h>
  #include "projectlib.h"
- extern int characterLane;
+
 
 
 const uint8_t const ufo[] = {
@@ -15,7 +15,4 @@ const uint8_t const ufo[] = {
  const uint8_t const spaceRock[] = {
     243,    166,    15,     140,    39,     117,    0,      33,
     55,     127,
-
-    253,    255,    255,    253,    255,    255,    254,    252,
-    255,    255
  };

@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <pic32mx.h>
 #include "projectlib.h"
-extern int characterLane;
+extern int characterLane = 0;
 
 
 int pressedBtns = -1; // int which getbtns should write to. Must be defaulted to -1 after use.
@@ -29,8 +29,3 @@ void laneRedirect(){
 		IFSCLR(0) = 0x100;
 	}
 } 
-
-
-int main(){
-    return 0;
-}
