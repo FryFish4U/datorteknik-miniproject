@@ -277,7 +277,7 @@ void display_update() {
 void showUfo(void){	// funktion för att ladda in ufot i game map.
 	int w = 0;
 	for( w ; w < 19 ; w++){
-		gameMap[(characterLane*128) + 10] = (gameMap[q] & ufo[w]);
+		gameMap[(characterLane*128) + (10 + w)] = (gameMap[(characterLane*128) + (10 + w)] & ufo[w]);
 	;
 	}
 	
@@ -317,27 +317,29 @@ int main(void) {
 	/* Clear SPIROV*/
 	SPI2STATCLR &= ~0x40;
 	/* Set CKP = 1, MSTEN = 1; */
-        SPI2CON |= 0x60;
+    SPI2CON |= 0x60;
 	
 	/* Turn on SPI */
 	SPI2CONSET = 0x8000;
 	
-	//timer2init();
     // timer4init();
+	
+	display_init(); //must come before timer2init
+	
+	timer2init();
 
-	display_init();
-
-
+	
 
 	int row;
 	int column;
-	for(row = 0 ; row < 4 ; row++){			//this loop is for filling the map with things.
-		for(column = 0 ; column < 128 ; column++){			
+	for(row = 0 ; row < 4 ; row++){						// this loop is for filling the map with nothing.
+		for(column = 0 ; column < 128 ; column++){		//! should be changed for a three lane version at som stage
 				gameMap[(row*128) + column] = 255;		
 		}
 	display_update();
 	showUfo();
-	display_string(3, "Score: " );
+	//display_string(3, "Score: " );
+	
 	}
 
 	
