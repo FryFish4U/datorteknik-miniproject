@@ -279,10 +279,28 @@ void showUfo(void){	// funktion för att ladda in ufot i game map.
 	for( w ; w < 19 ; w++){
 		gameMap[(characterLane*128) + (10 + w)] = (gameMap[(characterLane*128) + (10 + w)] & ufo[w]);
 	;
-	}
+	} 
 	
 	display_update();
 	display_image(0, gameMap);
+}
+
+void move_ufo(int direction){ // will accept input to decide whiche direction to move. 
+//! don't know how to test this.... also, very bad code... maybe
+	int times;
+	int column;
+	int i;
+	if (direction < 0){
+		short flip[19];
+		for (i = 0; i < 19; i++){
+			flip[i] = ~( gameMap[((characterLane + 1) * 128) + (10 + i)] << 8) && (gameMap[(characterLane * 128) + (10 + i)]); //cursed statement
+		}							// the statement above is meant to copy two pages and invert the value.
+									// this makes it easier to shift them without worrying about arithmetic shifts, which seems impossible to do.
+		for (i = 0; i < 19; i++ ){	// shift everything upwards one bit
+			flip[i] = (flip[i]) >> 1 ;
+		}
+		// some code to copy it back into game map. TBD
+	}
 }
 
 int main(void) {
