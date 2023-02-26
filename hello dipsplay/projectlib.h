@@ -14,3 +14,6 @@ int charactersLane; // the lane in which the character is in, starts at 128 whic
 // checkio.c functions:
 int getbtns (void);
 int getsw (void);
+
+// display functions
+void showUfo(void);

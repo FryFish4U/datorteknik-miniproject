@@ -27,7 +27,7 @@ void timer2init(){
 
     T2CONSET = 0x8000; // starts timer - adviced to start at end to minimalize problems
 
-    enable_interrupt(); // enables interuppts via labwork.s
+    enable_interrupt(); // enables interuppts via enableint.S
 
 }
 

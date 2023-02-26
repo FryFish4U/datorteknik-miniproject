@@ -18,11 +18,13 @@ void laneRedirect(){
 			
 		if(pressedBtns & 0b001 && charactersLane > 0){ // move up if btn 4 is pressed
 			charactersLane--; // move up
+			showUfo();
 			pressedBtns = -1; // default pressedBtns
 		}
 
 	    if(pressedBtns & 0b100 && charactersLane < 2){ // move down if btn 2 is pressed
 			charactersLane++; // move down
+			showUfo();
 			pressedBtns = -1; // default pressedBtns
 		}
 

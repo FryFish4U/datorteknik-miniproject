@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include "projectlib.h"
 
-extern int characterLane;
+
 
 #define DISPLAY_VDD PORTFbits.RF6
 #define DISPLAY_VBATT PORTFbits.RF5
@@ -20,6 +20,8 @@ extern int characterLane;
 #define DISPLAY_RESET_MASK 0x200
 
 uint8_t gameMap[512];		// array for the basic map
+extern int characterLane;
+
 
 char textbuffer[4][16];
 
@@ -272,12 +274,20 @@ void display_update() {
 	}
 }
 
+void showUfo(void){	// funktion för att ladda in ufot i game map.
+	int w = 0;
+	for( w ; w < 19 ; w++){
+		gameMap[(characterLane*128) + 10] = (gameMap[q] & ufo[w]);
+	;
+	}
+	
+	display_update();
+	display_image(0, gameMap);
+}
+
 int main(void) {
 
-	timer2init();
-    // timer4init();
-    enable_interrupt(); // enables interuppts via labwork.s
-
+	
 	/* Set up peripheral bus clock */
 	OSCCON &= ~0x180000;
 	OSCCON |= 0x080000;
@@ -312,26 +322,24 @@ int main(void) {
 	/* Turn on SPI */
 	SPI2CONSET = 0x8000;
 	
+	//timer2init();
+    // timer4init();
+
 	display_init();
 
 
 
-	int q;
-	int w;
-	int e;
-	for(q = 0 ; q < 4 ; q++){			//this loop is for filling the map with numbers.
-		for(w = 0 ; w < 128 ; w++){		//loops if statements to create lines	
-				gameMap[(q*128)+w]= 55;
+	int row;
+	int column;
+	for(row = 0 ; row < 4 ; row++){			//this loop is for filling the map with things.
+		for(column = 0 ; column < 128 ; column++){			
+				gameMap[(row*128) + column] = 255;		
 		}
-	// q = gameMap [charactersLane + 10];
-	// w = 0;
-	// for(q ; q< (gameMap[charactersLane + 10] + 19) ; q++){
-	// 	gameMap[q] = gameMap[q] | ufo[w];
-	// 	w++;
-	// }
 	display_update();
-	display_image(0, gameMap);
-	
+	showUfo();
+	display_string(3, "Score: " );
 	}
-return 0;
+
+	
+	return 0;
 }
