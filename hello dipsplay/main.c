@@ -22,7 +22,6 @@
 uint8_t gameMap[512];		// array for the basic map
 extern int characterLane;
 
-
 char textbuffer[4][16];
 
 int gameSpeedUpEvents = 0; // ammount of times timer4 has lowered its tickrate
