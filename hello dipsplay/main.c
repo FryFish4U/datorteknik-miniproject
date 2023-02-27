@@ -28,7 +28,13 @@ char textbuffer[4][16];
 
 int gameSpeedUpEvents = 0; // ammount of times timer4 has lowered its tickrate
 
-int moreThen = 2000; // int for the gameSpeed function. Used to check if timer 2 counter is more than value
+int moreThen = 2000; // int for the gameSpeed function. Used to check if the timer 2 counter is more than value
+
+
+int pMovePC = 0;
+
+uint8_t gameMap4Test[128];
+
 
 static const uint8_t const font[] = { // 8 x 128 bytes 
 	0, 0, 0, 0, 0, 0, 0, 0,
@@ -256,9 +262,8 @@ void display_image(int x, const uint8_t *data) {
 }
 
 void display_update() {
-	int i, j, k;
-	int c;
-	for(i = 0; i < 4; i++) {
+
+	for(int i = 0; i < 4; i++) {
 		DISPLAY_COMMAND_DATA_PORT &= ~DISPLAY_COMMAND_DATA_MASK;
 		spi_send_recv(0x22);
 		spi_send_recv(i);
@@ -268,16 +273,57 @@ void display_update() {
 		
 		DISPLAY_COMMAND_DATA_PORT |= DISPLAY_COMMAND_DATA_MASK;
 		
-		for(j = 0; j < 16; j++) {
-			c = textbuffer[i][j];
+		for(int j = 0; j < 16; j++) {
+			int c = textbuffer[i][j];
 			if(c & 0x80)
 				continue;
 			
-			for(k = 0; k < 8; k++)
+			for(int k = 0; k < 8; k++)
 				spi_send_recv(font[c*8 + k]);
 		}
 	}
 }
+
+uint8_t obstacleApproach(uint8_t obs){
+	uint8_t movedObs = obs < 8;
+	return movedObs;
+}
+
+void testCodeScreen(uint8_t obs0, uint8_t obs1, uint8_t obs2){
+
+	// todo: ska dela upp spriten i 3 delar i fall att den delar lanes, men fel matte så kommer nog inte funka, räkna om
+	uint8_t displayP0 = gameMap;
+	uint8_t displayP1 = gameMap;
+	uint8_t displayP2 = gameMap;
+
+	displayP0 = displayP0 & ~(~ufo > 8*pMovePC); // todo: fel matte
+	displayP1 = displayP1 & ~(~ufo > 8*8*pMovePC); // todo: fel matte
+	displayP2 = displayP2 & ~(~ufo > 8*8*8*pMovePC); // todo: fel matte
+
+	// checks if pixels in lane 0 between the ufo and ev. obstacles will collide
+	// and if thats the case run gameOver() and display the players score (if time allows)
+	if(~displayP0 & ~obs0) 		
+		gameOver(scoreCounter);
+	else
+		displayP0 = displayP0 & obs0;
+
+	if(~displayP1 & ~obs1)
+		gameOver(scoreCounter);	
+	else
+		displayP1 = displayP1 & obs1;
+	
+	if(~displayP2 & ~obs2)
+		gameOver(scoreCounter);
+	else
+		displayP2 = displayP2 & obs2;
+
+	// display the updated pages
+	display_update();
+	display_image(0, displayP0);
+	display_image(1, displayP1);
+	display_image(2, displayP2);
+}
+
 
 void showUfo(void){	// funktion för att ladda in ufot i game map.
 	int w = 0;
@@ -297,32 +343,30 @@ void move_ufo(int direction){ // will accept input to decide whiche direction to
 		int blanksAbove = 127;	// to create blanks above the ship as it spawns in
 		int shiftAbove = 7;		// how much to shift the ufo template when spawning
 		int shiftBelow = 1;		// how much to shift the ufo template when despawing
-		int j = 8;				// increment the outer loop
-		int i;					// a counter
+		int j = 8;				// increment the outer loop	
 		uint8_t temp0[19];		// tempporary image array. for the page we move into
 		uint8_t temp1[19];		// tempporary image array. for the page we are moving from
 
 		
 			
-
 		while (j > 0){	// loops 8 times. 1 for each pixel in a page.
 
-			for (i = 0; i < 19; i++){ // this for loop fills our temp array with a partial image of the ufo. more with every itteration.
+			for (int i = 0; i < 19; i++){ // this for-loop fills our temp array with a partial image of the ufo. more with every itteration.
 				temp0[i] = ((ufo[i] << shiftAbove) | blanksAbove);	
 				temp1[i] = ((ufo[i] >> shiftBelow)| blanksBelow);	
 			}
 
-			int w = 0;
-			for( w ; w < 19 ; w++){	// this for loop copies out temp value into the map at the right lane
-				gameMap[(characterLane*128) + (10 + w)] = ((gameMap[(characterLane*128) + (10 + w)] | 255/* or 255 to reset the image*/ )
+			for(int w = 0 ; w < 19 ; w++){ // this for-loop copies out temp value into the map at the right lane
+				gameMap[(characterLane*128) + (10 + w)] = ((gameMap[(characterLane*128) + (10 + w)] | 255 /* or 255 to reset the image*/ )
 				& temp0[w]);
 				gameMap[((characterLane + 1)*128) + (10 + w)] = ((gameMap[((characterLane + 1)*128) + (10 + w)] | 255 )	& temp1[w]);
 			} 
+
 			blanksAbove = (blanksAbove /2); 	// decrements how much blank space should be used above
 			blanksBelow = ((blanksBelow/2) + 128);// increments how much blank space should be used below 
-			shiftAbove -- ;						// decrements how much of the ufo template to remove above
-			shiftBelow ++;						// increments how much of the ufo template to remove below
-			j --;								// counts itterations. 
+			shiftAbove-- ;						// decrements how much of the ufo template to remove above
+			shiftBelow++;						// increments how much of the ufo template to remove below
+			j--;								// counts itterations. 
 
 			//display_update();
 			display_image(0, gameMap);
@@ -346,7 +390,7 @@ void move_ufo(int direction){ // will accept input to decide whiche direction to
 		uint8_t temp1[19];		// tempporary image array. for the page we are moving from
 
 		
-			
+
 
 		while (j > 0){	// loops 8 times. 1 for each pixel in a page. //! ska skrivas om för att flytta neråt!!
 
@@ -394,9 +438,15 @@ int collisionCheck(){ //TODO: Kod ska kolla om bitsen i spritesen overlappar med
 	return 0;
 }
 
-int main(void) {
+int scoreCounter(){ //TODO: Kod ska översätta TMR2 till spelarens poäng eller alternativt räkna under spelets gång
+	return 0;
+}
 
-	
+
+int
+ main(void) {
+
+
 	/* Set up peripheral bus clock */
 	OSCCON &= ~0x180000;
 	OSCCON |= 0x080000;
