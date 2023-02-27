@@ -25,6 +25,11 @@ extern int characterLane;
 
 char textbuffer[4][16];
 
+int gameSpeedUpEvents = 0; // ammount of times timer4 has lowered its tickrate
+
+int moreThen = 1999; // int for the gameSpeed function. Used to check if timer 2 counter is more than value
+int lessThen = 4000; // int for the gameSpeed function. Used to check if timer 2 counter isn't more than value
+
 static const uint8_t const font[] = { // 8 x 128 bytes 
 	0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0,
@@ -283,6 +288,21 @@ void showUfo(void){	// funktion för att ladda in ufot i game map.
 	
 	display_update();
 	display_image(0, gameMap);
+}
+
+void gameSpeed(){ // code should lower the value of PR4(tickrate 4) when TMR2(counter 2) reaches procedural values 
+
+	int timerCount = TMR2; // saves the value of TMR2(counter 2) in an int for stability, in case it changes value in the middle of function
+
+	if(moreThen < timerCount){ // checks if timerCount is within a set parameter
+		PR4 = (0x7a12 / (1 + ((gameSpeedUpEvents + 1) / 10))); // should increase tickrate by .1 every time if statement is true
+		gameSpeedUpEvents++; // advances gameSpeedUpEvents one, could be used to display the games current level
+		lessThen, moreThen += 2000; // increases the requirment for timerCount in the 'if' statement
+	}
+}
+
+int collisionCheck(){ //TODO: Kod ska kolla om bitsen i spritesen overlappar med ufots
+	return 0;
 }
 
 int main(void) {
