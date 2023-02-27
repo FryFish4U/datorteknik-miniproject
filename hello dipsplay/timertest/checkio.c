@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <pic32mx.h>
-#include "projectlib.h"
-
+#include "timertlib.h"
 
 int getsw(void){ //! bör inte behövas men finns 
     int switchesOn = (PORTD >> 8) & 0xf;    // value = switches turned on in binary
@@ -15,5 +14,5 @@ int getbtns (void){                         // Only checks button 4 to 2 (RD7-RD
 }
     
 void user_isr(){
-    
+    return;
 }
