@@ -17,3 +17,9 @@ int getsw (void);
 
 // display functions
 void showUfo(void);
+
+// init functions:
+void time2init();
+void time4init();
+void buttonInit();
+void debugInit();
