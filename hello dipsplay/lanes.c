@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <pic32mx.h>
 #include "projectlib.h"
-extern int characterLane = 0;
+extern int characterLane = 1;
 
 
 int pressedBtns = -1; // int which getbtns should write to. Must be defaulted to -1 after use.
