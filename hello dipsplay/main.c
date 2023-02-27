@@ -19,6 +19,8 @@
 #define DISPLAY_RESET_PORT PORTG
 #define DISPLAY_RESET_MASK 0x200
 
+volatile uint32_t delayTest;
+
 uint8_t gameMap[512];		// array for the basic map
 extern int characterLane;
 
@@ -281,12 +283,101 @@ void display_update() {
 void showUfo(void){	// funktion för att ladda in ufot i game map.
 	int w = 0;
 	for( w ; w < 19 ; w++){
-		gameMap[(characterLane*128) + 10] = (gameMap[q] & ufo[w]);
-	;
-	}
+		gameMap[(characterLane*128) + (10 + w)] = (gameMap[(characterLane*128) + (10 + w)] & ufo[w]);
+	} 
 	
-	display_update();
+	//display_update();
 	display_image(0, gameMap);
+}
+
+void move_ufo(int direction){ // will accept input to decide whiche direction to move. 
+
+	if (direction < 0){
+		int timeOutCount = 0;
+		int blanksBelow = 128;	// to create blanks below the ship as it leaves the lane
+		int blanksAbove = 127;	// to create blanks above the ship as it spawns in
+		int shiftAbove = 7;		// how much to shift the ufo template when spawning
+		int shiftBelow = 1;		// how much to shift the ufo template when despawing
+		int j = 8;				// increment the outer loop
+		int i;					// a counter
+		uint8_t temp0[19];		// tempporary image array. for the page we move into
+		uint8_t temp1[19];		// tempporary image array. for the page we are moving from
+
+		
+			
+
+		while (j > 0){	// loops 8 times. 1 for each pixel in a page.
+
+			for (i = 0; i < 19; i++){ // this for loop fills our temp array with a partial image of the ufo. more with every itteration.
+				temp0[i] = ((ufo[i] << shiftAbove) | blanksAbove);	
+				temp1[i] = ((ufo[i] >> shiftBelow)| blanksBelow);	
+			}
+
+			int w = 0;
+			for( w ; w < 19 ; w++){	// this for loop copies out temp value into the map at the right lane
+				gameMap[(characterLane*128) + (10 + w)] = ((gameMap[(characterLane*128) + (10 + w)] | 255/* or 255 to reset the image*/ )
+				& temp0[w]);
+				gameMap[((characterLane + 1)*128) + (10 + w)] = ((gameMap[((characterLane + 1)*128) + (10 + w)] | 255 )	& temp1[w]);
+			} 
+			blanksAbove = (blanksAbove /2); 	// decrements how much blank space should be used above
+			blanksBelow = ((blanksBelow/2) + 128);// increments how much blank space should be used below 
+			shiftAbove -- ;						// decrements how much of the ufo template to remove above
+			shiftBelow ++;						// increments how much of the ufo template to remove below
+			j --;								// counts itterations. 
+
+			//display_update();
+			display_image(0, gameMap);
+
+			delayTest = 0;
+			while (delayTest < 100000){
+				delayTest ++;
+			}
+		}
+
+	}
+	if (direction > 0){
+		int timeOutCount = 0;
+		int blanksBelow = 128;	// to create blanks below the ship as it leaves the lane
+		int blanksAbove = 127;	// to create blanks above the ship as it spawns in
+		int shiftAbove = 7;		// how much to shift the ufo template when spawning
+		int shiftBelow = 1;		// how much to shift the ufo template when despawing
+		int j = 8;				// increment the outer loop
+		int i;					// a counter
+		uint8_t temp0[19];		// tempporary image array. for the page we move into
+		uint8_t temp1[19];		// tempporary image array. for the page we are moving from
+
+		
+			
+
+		while (j > 0){	// loops 8 times. 1 for each pixel in a page. //! ska skrivas om för att flytta neråt!!
+
+			for (i = 0; i < 19; i++){ // this for loop fills our temp array with a partial image of the ufo. more with every itteration.
+				temp0[i] = ((ufo[i] << shiftAbove) | blanksAbove);	
+				temp1[i] = ((ufo[i] >> shiftBelow)| blanksBelow);	
+			}
+
+			int w = 0;
+			for( w ; w < 19 ; w++){	// this for loop copies out temp value into the map at the right lane
+				gameMap[(characterLane*128) + (10 + w)] = ((gameMap[(characterLane*128) + (10 + w)] | 255/* or 255 to reset the image*/ )
+				& temp0[w]);
+				gameMap[((characterLane + 1)*128) + (10 + w)] = ((gameMap[((characterLane + 1)*128) + (10 + w)] | 255 )	& temp1[w]);
+			} 
+			blanksAbove = (blanksAbove /2); 	// decrements how much blank space should be used above
+			blanksBelow = ((blanksBelow/2) + 128);// increments how much blank space should be used below 
+			shiftAbove -- ;						// decrements how much of the ufo template to remove above
+			shiftBelow ++;						// increments how much of the ufo template to remove below
+			j --;								// counts itterations. 
+
+			//display_update();
+			display_image(0, gameMap);
+
+			delayTest = 0;
+			while (delayTest < 100000){
+				delayTest ++;
+			}
+		}
+	}
+	return;
 }
 
 void gameSpeed(){ // code should lower the value of PR4(tickrate 4) when TMR2(counter 2) reaches procedural values 
@@ -341,11 +432,10 @@ int main(void) {
 	/* Turn on SPI */
 	SPI2CONSET = 0x8000;
 	
-	//timer2init();
     // timer4init();
 
 	display_init();
-
+	//timer2init();
 
 
 	int row;
@@ -356,9 +446,13 @@ int main(void) {
 		}
 	display_update();
 	showUfo();
-	display_string(3, "Score: " );
-	}
-
 	
+	//display_string(3, "Score: " );
+	
+	}
+	//Testing
+	characterLane = 0;
+ 	move_ufo(-1);
+	//Testing
 	return 0;
 }
