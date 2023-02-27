@@ -28,7 +28,6 @@ void timer2init(){
     T2CONSET = 0x8000; // starts timer - adviced to start at end to minimalize problems
 
     enable_interrupt(); // enables interuppts via enableint.S
-
 }
 
 void timer4init(){
@@ -52,9 +51,14 @@ void timer4init(){
     IFSCLR(0) = 0x800; // clear external interupts 2 flag
 
     T4CONSET = 0x8000; // starts timer - adviced to start at end to minimalize problems
-
 }
 
 
+void buttonInit(){
+  TRISDSET = 0xfe0; // enables inputs of button 2, 3 and 4 
+}
 
+void debugInit(){
+    volatile int* PortEPointer = (volatile int*) 0xbf886100; // Pointer points to Port E, register TRISE
+}
 
