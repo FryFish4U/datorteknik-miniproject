@@ -281,6 +281,20 @@ void move_obs(int lane){	 //recives lane argument, 0 is top lane 2is bot lane
 	}
 }
 
+void spawn_obstacle(int bLane){ // bLane checks the 3 LSB and calls a function to create obstacles in the lanes corresponded by the bits 
+	int l = bLane & 0b111;
+
+	if(l == 0b111)	// if all three lanes should get an obstacle
+		return;		// return, due to them being impossible for the player to avoid 
+
+	if(l & 0b100)			// if the 3rd bit is 1, create obstacle in the lowest lane
+		create_obstacle(2);	
+	if(l & 0b010)			// if the 2nd bit is 1, create obstacle in the middle lane
+		create_obstacle(1);	
+	if(l & 0b001)			// if the 1st bit is 1, create obstacle in the top lane
+		create_obstacle(0);	
+}
+
 void explode(int lane){ //! testa funktionen
 
 	int j;
@@ -360,7 +374,7 @@ void explode(int lane){ //! testa funktionen
 }
 
 
-// Templates for timer interrupts:
+//? Templates for timer interrupts:
 /* delay with timer 2:
 	if(IFS(0) & 0x800){  // if int.ext.2 flag is 1 
 		//*[CODE THAT SHOULD BE EXECUTED]
@@ -387,8 +401,18 @@ void labwork( void )
 	//explode(2);
 
 	/* end of test code */
-	
+
+	int btnOut = getbtns();
+	if(btnOut | 0b1010) // if both the up and down buttons are pressed  
+		btnOut = 0;		// set the value of btnOut to 0, UFO wont move
+
 	gameSpeed();
+
+	if(btnOut | 0b0010)	// if the down button is pressed
+		move_ufo(1);	// move the UFO down
+	else				// else
+	if(btnOut | 0b1000)	// if the up button is pressed
+		move_ufo(-1);	// move the UFO up
 
 	display_update();
 }
