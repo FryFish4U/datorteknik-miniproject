@@ -121,25 +121,24 @@ void showUfo(void){	// funktion för att ladda in ufot i game map.
     return;
 }
 
-int pressedBtns = -1; // int which getbtns should write to. Must be defaulted to -1 after use.
-
 void laneRedirect(){
+	int pressedBtns = 0; // int which getbtns should write to. Must be defaulted to 0 after use.
 
 	pressedBtns = getbtns();
 
-		if(pressedBtns & 0b101) // if both move left and right are pressed: default pressedBtns
-			pressedBtns = -1; // default pressedBtns
+		if((pressedBtns & 0b001) && (pressedBtns & 0b100)) // if both move left and right are pressed: default pressedBtns
+			pressedBtns = 0; // default pressedBtns
 			
-		if(pressedBtns & 0b001 && characterLane > 0){ // move up if btn 4 is pressed
+		if((pressedBtns & 0b001) && (characterLane > 0)){ // move up if btn 4 is pressed
 			characterLane--; // move up
-			showUfo();
-			pressedBtns = -1; // default pressedBtns
+			move_ufo(-1);
+			pressedBtns = 0; // default pressedBtns
 		}
 
-	    if(pressedBtns & 0b100 && characterLane < 2){ // move down if btn 2 is pressed
+	    if((pressedBtns & 0b100) && (characterLane < 2)){ // move down if btn 2 is pressed
 			characterLane++; // move down
-			showUfo();
-			pressedBtns = -1; // default pressedBtns
+			move_ufo(1);
+			pressedBtns = 0; // default pressedBtns
 		}
 } 
 
@@ -154,7 +153,8 @@ void gameSpeed(){ // code should lower the value of PR4(tickrate 4) when TMR2(co
 	}
 }
 
-void move_ufo(int direction){ // will accept input to decide whiche direction to move. direction < 0 = upwards. directione > 0 = downwards
+void move_ufo(int direction){ 	// will accept input to decide whiche direction to move. direction < 0 = upwards. directione > 0 = downwards
+								// updates screen afterwards.
 
 	if (direction < 0){		//move upwards
 		int timeOutCount = 0;
@@ -276,7 +276,8 @@ void move_obs(int lane){	 //recives lane argument, 0 is top lane 2is bot lane
 	}
 }
 
-void spawn_obstacle(int bLane){ // bLane checks the 3 LSB and calls a function to create obstacles in the lanes corresponded by the bits 
+void spawn_obstacle(int bLane){ // bLane checks the 3 LSB and calls a function to create obstacles 
+								// in the lanes corresponded by the bits. 
 	int l = bLane & 0b111;
 
 	if(l == 0b111)	// if all three lanes should get an obstacle
@@ -403,11 +404,13 @@ void labwork( void )
 
 	gameSpeed();
 
-	if(btnOut | 0b0010)	// if the down button is pressed
-		move_ufo(1);	// move the UFO down
-	else				// else
-	if(btnOut | 0b1000)	// if the up button is pressed
-		move_ufo(-1);	// move the UFO up
+	laneRedirect();
+
+	// if(btnOut | 0b0010)	// if the down button is pressed
+	// 	move_ufo(1);	// move the UFO down
+	// else				// else
+	// if(btnOut | 0b1000)	// if the up button is pressed
+	// 	move_ufo(-1);	// move the UFO up
 
 	display_update();
 }
