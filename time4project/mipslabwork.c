@@ -104,6 +104,9 @@ void labinit( void )
 
 	enable_interrupt(); // enables interuppts via labwork.s
 
+	setup_gameMap();
+	showUfo();
+
 	return;
 }
 
@@ -152,7 +155,7 @@ void gameSpeed(){ // code should lower the value of PR4(tickrate 4) when TMR2(co
 	}
 }
 
-void move_ufo(int direction){ // will accept input to decide whiche direction to move. 
+void move_ufo(int direction){ // will accept input to decide whiche direction to move. direction < 0 = upwards. directione > 0 = downwards
 
 	if (direction < 0){		//move upwards
 		int timeOutCount = 0;
@@ -169,6 +172,8 @@ void move_ufo(int direction){ // will accept input to decide whiche direction to
 			
 
 		while (j > 0){	// loops 8 times. 1 for each pixel in a page.
+
+			IFSCLR(0) = 0x800; // reset flag for delay
 
 			for (i = 0; i < 19; i++){ // this for loop fills our temp array with a partial image of the ufo. more with every itteration.
 				temp0[i] = ((ufo[i] << shiftAbove) | blanksAbove);	
@@ -190,10 +195,7 @@ void move_ufo(int direction){ // will accept input to decide whiche direction to
 			//display_update();
 			display_image(0, gameMap);
 
-			// delayTest = 0;      //! ska bytas mot timer och interrupt med counter
-			// while (delayTest < 100000){
-			// 	delayTest ++;
-			// }
+			while(!(IFS(0) & 0x800)); // delay untill flag event
 		}
 
 	}
@@ -212,6 +214,8 @@ void move_ufo(int direction){ // will accept input to decide whiche direction to
 			
 
 		while (j > 0){	// loops 8 times. 1 for each pixel in a page.
+			
+			IFSCLR(0) = 0x800; //reset flag for delay
 
 			for (i = 0; i < 19; i++){ // this for loop fills our temp array with a partial image of the ufo. more with every itteration.
 				temp0[i] = ((ufo[i] << shiftAbove) | blanksAbove);
@@ -232,10 +236,7 @@ void move_ufo(int direction){ // will accept input to decide whiche direction to
 			//display_update();
 			display_image(0, gameMap);
 
-			// delayTest = 0;  //! ska bytas mot timer och interrupt med counter
-			// while (delayTest < 1000000){
-			// 	delayTest ++;
-			// }
+			while(!(IFS(0) & 0x800));  // delay untill flag event
 		}
 	}
 	return;
@@ -251,7 +252,7 @@ void setup_gameMap(void){
 	}
 }
 
-void spawn_obstacle (int lane){ // spawns a spaceRock at the end of the map
+void create_obstacle (int lane){ // spawns a spaceRock at the end of the map Lane 0 is top lane
     int i = 0;
 	int column;
 	for(column = 127 ; column > 117 ; column--){			
@@ -265,6 +266,19 @@ void spawn_obstacle (int lane){ // spawns a spaceRock at the end of the map
 		// 	delayTest ++;	
 	    // }   
     }
+}
+
+void move_obs(int lane){
+	int i = 0;
+	int column;
+	for(column = 116 ; column > 0 ; column--){
+		IFSCLR(0) = 0x8000;
+		for (i = 0; i < 10; i++){			
+		gameMap[((lane*128) + column)+i] = gameMap[(((lane*128) + column)+i) | 255] & spaceRock[i];
+		}
+        display_image(0, gameMap);
+		while (!(IFS(0) & 0x8000));
+	}
 }
 
 void spawn_obstacle(int bLane){ // bLane checks the 3 LSB and calls a function to create obstacles in the lanes corresponded by the bits 
@@ -282,42 +296,6 @@ void spawn_obstacle(int bLane){ // bLane checks the 3 LSB and calls a function t
 }
 
 void explode(int lane){ //! testa funktionen
-
-    /*int i;
-    int j;
-	for (i = 0; i < 8; i++){
-		for (j = 0; j < 10; j++){
-			if( i == 0){
-				gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp1[j];
-			}
-			if( i == 1){
-				gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & (exp1[j] & exp2[j]);
-			}
-			if( i == 2){
-				gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp2[j];
-			}
-			if( i == 3){
-				gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & (exp2[j] & exp3[j]);
-			}
-			if( i == 4){
-				gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp3[j];
-			}
-			if( i == 5){
-				gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & (exp3[j] & exp4[j]);
-			}
-			if( i == 6){
-				gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp4[j];
-			}
-			else{
-				gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255);
-			}
-		}
- 		display_image(0, gameMap);
-
-        delayTest = 0;      //! ska bytas mot timer och interrupt med counter
-        while (delayTest < 900000){
-			delayTest++;
-		}*/
 
 	int j;
 	for(j = 0; j < 10; j++){
@@ -392,26 +370,7 @@ void explode(int lane){ //! testa funktionen
         while (delayTest < 100000){
 			delayTest++;
 		}
-    // for(i = 0; i < 7; i++){
-    //     if(i % 2 == 0){
-    //         for(j = 0; j < 10; j++){
-                
-    //     }
-           
-	//     }
-    // }  
-    //     else{
-    //         for(j = 0; j < 10; j++){
-    //                 gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & (exp1[i][j] & exp1[i+1][j]);
-    //         }
-    //         display_image(0, gameMap);
-
-    //         delayTest = 0;      //! ska bytas mot timer och interrupt med counter
-    //         while (delayTest < 100000){
-    //             delayTest ++;	
-    //         }
-    //     } 
-    // }
+   
 }
 
 
@@ -434,12 +393,11 @@ void explode(int lane){ //! testa funktionen
 void labwork( void )
 {
   	/* start of test code */
-	display_update();
-	setup_gameMap();
-	showUfo();
+	
+	
 	characterLane = 2;
- 	move_ufo(1);
-	spawn_obstacle (2);
+	create_obstacle(2);
+	move_obs(2);
 	//explode(2);
 
 	/* end of test code */
