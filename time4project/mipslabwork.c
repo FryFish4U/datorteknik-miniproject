@@ -161,8 +161,8 @@ void gameSpeed(){ // code should lower the value of PR4(tickrate 4) when TMR2(co
 
 void move_ufo(int direction){ 	// will accept input to decide whiche direction to move. direction < 0 = upwards. directione > 0 = downwards
 								// updates screen afterwards.
-
-	if (direction < 0){		//move upwards
+								
+	if (direction < 0){			//move upwards
 		int timeOutCount = 0;
 		int blanksBelow = 128;	// to create blanks below the ship as it leaves the lane
 		int blanksAbove = 127;	// to create blanks above the ship as it spawns in
@@ -174,9 +174,7 @@ void move_ufo(int direction){ 	// will accept input to decide whiche direction t
 		uint8_t temp1[19];		// tempporary image array. for the page we are moving from
 
 		while (j > 0){	// loops 8 times. 1 for each pixel in a page.
-
-			IFSCLR(0) = 0x100; // reset flag for delay
-
+		if(IFS(0) & 0x100){
 			for (i = 0; i < 19; i++){ // this for loop fills our temp array with a partial image of the ufo. more with every itteration.
 				temp0[i] = ((ufo[i] << shiftAbove) | blanksAbove);	
 				temp1[i] = ((ufo[i] >> shiftBelow) | blanksBelow);	
@@ -195,11 +193,11 @@ void move_ufo(int direction){ 	// will accept input to decide whiche direction t
 
 			//display_update();
 			display_image(0, gameMap);
-
-			while(!(IFS(0) & 0x100)); // delay untill flag event
+			IFSCLR(0) = 0x100;
+			}
 		}
 	}
-
+	else
 	if (direction > 0){		//move downwards
 		int timeOutCount = 0;
 		int blanksBelow = 254;	// to create blanks below the ship as itspawns  
@@ -216,30 +214,30 @@ void move_ufo(int direction){ 	// will accept input to decide whiche direction t
 
 		while (j > 0){	// loops 8 times. 1 for each pixel in a page.
 			
-			IFSCLR(0) = 0x100; //reset flag for delay
+			if(IFS(0) & 0x100){
+				for (i = 0; i < 19; i++){ // this for loop fills our temp array with a partial image of the ufo. more with every itteration.
+					temp0[i] = ((ufo[i] << shiftAbove) | blanksAbove);
+					temp1[i] = ((ufo[i] >> shiftBelow) | blanksBelow);	
+				}
 
-			for (i = 0; i < 19; i++){ // this for loop fills our temp array with a partial image of the ufo. more with every itteration.
-				temp0[i] = ((ufo[i] << shiftAbove) | blanksAbove);
-				temp1[i] = ((ufo[i] >> shiftBelow) | blanksBelow);	
+				for(i = 0 ; i < 19 ; i++){	// this for loop copies out temp value into the map at the right lane
+					gameMap[((characterLane - 1)*128) + (10 + i)] = ((gameMap[((characterLane - 1)*128) + (10 + i)] | 255 )	& temp0[i]);
+					gameMap[((characterLane)*128) + (10 + i)] = ((gameMap[((characterLane)*128) + (10 + i)] | 255 )	& temp1[i]);
+				} 
+
+				blanksAbove = ((blanksAbove*2) + 1); 	
+				blanksBelow = ((blanksBelow*2) - 256);	
+				shiftAbove++;						
+				shiftBelow--;						
+				j--;								
+
+				//display_update();
+				display_image(0, gameMap);
 			}
-
-			for(i = 0 ; i < 19 ; i++){	// this for loop copies out temp value into the map at the right lane
-				gameMap[((characterLane - 1)*128) + (10 + i)] = ((gameMap[((characterLane - 1)*128) + (10 + i)] | 255 )	& temp0[i]);
-				gameMap[((characterLane)*128) + (10 + i)] = ((gameMap[((characterLane)*128) + (10 + i)] | 255 )	& temp1[i]);
-			} 
-
-			blanksAbove = ((blanksAbove*2) + 1); 	
-			blanksBelow = ((blanksBelow*2) - 256);	
-			shiftAbove++;						
-			shiftBelow--;						
-			j--;								
-
-			//display_update();
-			display_image(0, gameMap);
-
-			while(!(IFS(0) & 0x100));  // delay untill flag event
+			IFSCLR(0) = 0x100;
 		}
 	}
+
 	return;
 }
 
