@@ -22,6 +22,8 @@ int timeOutCount = 0; //! temp mby, should be able to use integrated counter
 
 int prime = 1234567;
 
+extern int characterLane = 1;
+
 int moreThen = 2000;
 
 int gameSpeedUpEvents = 0;
@@ -29,76 +31,87 @@ int gameSpeedUpEvents = 0;
 /* Interrupt Service Routine */
 void user_isr( void )
 {
-  if(IFS(0) & 0x800){  // if int.ext.2 flag is 1 
-     mytime += 3;      // then +3 seconds passes
-     IFSCLR(0) = 0x800;
-  }
+	if(IFS(0) & 0x800){  // if int.ext.2 flag is 1 
+		mytime += 3;      // then +3 seconds passes
+		IFSCLR(0) = 0x800;
+	}
 
-  if(IFS(0) & 0x100){
-    timeOutCount++;
+	if(IFS(0) & 0x100){
+	timeOutCount++;
 
-    if(timeOutCount >= 10){
-        time2string( textstring, mytime );
-        display_string( 3, textstring );
-        display_update();
-        tick( &mytime );
+	if(timeOutCount >= 10){
+		time2string( textstring, mytime );
+		display_string( 3, textstring );
+		display_update();
+		tick( &mytime );
 
-        timeOutCount = 0;
-    }
-    IFSCLR(0) = 0x100;
-  }
+		timeOutCount = 0;
+	}
+	IFSCLR(0) = 0x100;
+	}
 }
 
 /* Lab-specific initialization goes here */
 void labinit( void )
 {
-  volatile int* PortEPointer = (volatile int*) 0xbf886100; // Pointer points to Port E, register TRISE
-  TRISDSET = 0x00000fe0;
+	volatile int* PortEPointer = (volatile int*) 0xbf886100; // Pointer points to Port E, register TRISE
+	TRISDSET = 0x00000fe0;
+
+	/* init timer 2: */
+	T2CON = 0x0; // disables timer before config - necessary
+
+	T2CONSET = 0x70; // should be 1:256 due to clock being 8 MHz and timer not having an implemented 1:128 prescaler
+	TMR2 = 0x0; // clears timer counter reg. 
+	PR2 = 0x7a12; // 16 bit register - since timer only uses 4 bytes - lower number means slower clock(??) - int value seems to change tick rate
+
+	IPC(2) = 0x1f; // priority 7 sub prio 3 - aka highest priority
+	IECSET(0) = 0x100; // enable timer 2 flag
+
+	IPCSET(2) = 0x8e000000; // prio 7 subprio 2 
+	IECSET(0) = 0x800; // enable ext.int.2
+
+	IFSCLR(0) = 0x100; // clear timer interupt
+
+	IFSCLR(0) = 0x800; // clear ext.int.2 flag
+
+  	T2CONSET = 0x8000; // starts timer - adviced to start at end to minimalize problems
+	/* end of timer 2 init */
   
-  /* init timer 2: */
-  T2CON = 0x0; // disables timer before config - necessary
+	/* init timer 4: */
+	T4CON = 0x0; // disables timer before config - necessary
 
-  T2CONSET = 0x70; // should be 1:256 due to clock being 8 MHz and timer not having an implemented 1:128 prescaler
-  TMR2 = 0x0; // clears timer counter reg. 
-  PR2 = 0x7a12; // 16 bit register - since timer only uses 4 bytes - lower number means slower clock(??) - int value seems to change tick rate
-  
-  IPC(2) = 0x1f; // priority 7 sub prio 3 - aka highest priority
-  IECSET(0) = 0x100; // enable timer 2 flag
+	T4CONSET = 0x70;    // should be 1:256 due to clock being 8 MHz and timer not having an implemented 1:128 prescaler
+	TMR4 = 0x0;         // clears timer counter reg. 
+	PR4 = 0x7a12;       // 16 bit register - since timer only uses 4 bytes
+						// - lower number means slower clock (int value defines tick rate)
 
-  IPCSET(2) = 0x8e000000; // prio 7 subprio 2 
-  IECSET(0) = 0x800; // enable ext.int.2
+	IPC(4) = 0x4;       // priority 2 (0b 0100)
+	IPCSET(4) = 0x1;    // sub prio 1 (0b xxx1)
+	IECSET(0) = 0x1000;  // enable timer 4 flag
 
-  IFSCLR(0) = 0x100; // clear timer interupt
+	IECSET(0) = 0x8000; // enable ext.int.4
 
-  IFSCLR(0) = 0x800; // clear ext.int.2 flag
+	IPCSET(4) = 0x8e000000; // prio 7 subprio 2 
 
-  T2CONSET = 0x8000; // starts timer - adviced to start at end to minimalize problems
+	T4CONSET = 0x8000; // starts timer - adviced to start at end to minimalize problems
+	/* end of timer 4 init */
 
-  
-  /* init timer 4: */
-  T4CON = 0x0; // disables timer before config - necessary
 
-  T4CONSET = 0x70;    // should be 1:256 due to clock being 8 MHz and timer not having an implemented 1:128 prescaler
-  TMR4 = 0x0;         // clears timer counter reg. 
-  PR4 = 0x7a12;       // 16 bit register - since timer only uses 4 bytes
-                      // - lower number means slower clock (int value defines tick rate)
+	enable_interrupt(); // enables interuppts via labwork.s
 
-  IPC(4) = 0x4;       // priority 2 (0b 0100)
-  IPCSET(4) = 0x1;    // sub prio 1 (0b xxx1)
-  IECSET(0) = 0x100;  // enable timer 2 flag
-
-  IPCSET(4) = 0x8e000000; // prio 7 subprio 2 
-
-  // todo: lista ut huru man ska interrupta med t4
-
-  T4CONSET = 0x8000; // starts timer - adviced to start at end to minimalize problems
-
-  enable_interrupt(); // enables interuppts via labwork.s
-
-  return;
+	return;
 }
 
-extern int characterLane = 1;
+void showUfo(void){	// funktion för att ladda in ufot i game map.
+	int w = 0;
+	for( w ; w < 19 ; w++){
+		gameMap[(characterLane*128) + (10 + w)] = (gameMap[(characterLane*128) + (10 + w)] & ufo[w]);
+	} 
+	
+	//display_update();
+	display_image(0, gameMap);
+    return;
+}
 
 
 int pressedBtns = -1; // int which getbtns should write to. Must be defaulted to -1 after use.
@@ -225,17 +238,6 @@ void move_ufo(int direction){ // will accept input to decide whiche direction to
 	return;
 }
 
-void showUfo(void){	// funktion för att ladda in ufot i game map.
-	int w = 0;
-	for( w ; w < 19 ; w++){
-		gameMap[(characterLane*128) + (10 + w)] = (gameMap[(characterLane*128) + (10 + w)] & ufo[w]);
-	} 
-	
-	//display_update();
-	display_image(0, gameMap);
-    return;
-}
-
 void setup_gameMap(void){
 	int row;
 	int column;
@@ -297,15 +299,13 @@ void explode(int lane){ //! testa funktionen
 /* This function is called repetitively from the main program */
 void labwork( void )
 {
-  /* testing */
+  	/* start of test code */
 	setup_gameMap();
 	showUfo();
 	characterLane = 2;
  	move_ufo(1);
 	spawn_obstacle (2);
 
-
-  prime = nextprime( prime );
-  display_string ( 0, itoaconv( prime ));
-  display_update();
+	/* end of test code */
+	display_update();
 }
