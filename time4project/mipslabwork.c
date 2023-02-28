@@ -33,6 +33,9 @@ volatile uint32_t delayTest; //! to be discarded
 
 uint8_t gameMap[512];		
 
+volatile int* PortEPointer = (volatile int*) 0xbf886110; // Pointer goes to Port E, register PORTE (LEDs), used for debug purposes
+
+
 /* Interrupt Service Routine */ 
 void user_isr( void ) //! INTENTIONAL: CLEARS ALL FLAGS 'IN CASE OF EMERGENCY'
 {
@@ -133,7 +136,7 @@ void laneRedirect(){
 			characterLane--; // move up
 			move_ufo(-1);
 			pressedBtns = 0; // default pressedBtns
-			volatile int* PortEPointer = (volatile int*) 0xbf886110; // Pointer goes to Port E, register PORTE (LEDs) //! DEBUG
+			*PortEPointer = (*PortEPointer & 0xffffff00); // Pointer goes to Port E, register PORTE (LEDs) //! DEBUG
 
 		}
 
@@ -141,7 +144,7 @@ void laneRedirect(){
 			characterLane++; // move down
 			move_ufo(1);
 			pressedBtns = 0; // default pressedBtns
-			volatile int* PortEPointer = (volatile int*) 0xbf886110; // Pointer goes to Port E, register PORTE (LEDs) //! DEBUG
+			*PortEPointer = (*PortEPointer & 0xffffff00); // Pointer goes to Port E, register PORTE (LEDs) //! DEBUG
 		}
 } 
 
@@ -391,8 +394,6 @@ void explode(int lane){ //! testa funktionen
 /* This function is called repetitively from the main program */
 void labwork( void )
 {
-	volatile int* PortEPointer = (volatile int*) 0xbf886110; // Pointer goes to Port E, register PORTE (LEDs), used for debug purposes
-
   	/* start of test code */
 	
 	//explode(2);
