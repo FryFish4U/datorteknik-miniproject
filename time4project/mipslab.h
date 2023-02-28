@@ -67,7 +67,7 @@ extern const uint8_t const exp4[10];
 // void move_ufo(int);
 // void setup_gameMap(void);
 // void spawn_obstacle(int);
-uint8_t gameMap[512];		// array for the basic map
+// array for the basic map
 
 //* legacy code:
 // // init functions:
