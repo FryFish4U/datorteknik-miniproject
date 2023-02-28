@@ -33,8 +33,8 @@ volatile uint32_t delayTest;
 
 uint8_t gameMap[512];		
 
-/* Interrupt Service Routine */
-void user_isr( void )
+/* Interrupt Service Routine */ 
+void user_isr( void ) //! INTENTIONAL: CLEARS ALL FLAGS 'IN CASE OF EMERGENCY'
 {
 	// if(IFS(0) & 0x800){  // if int.ext.2 flag is 1 
 	// 	mytime += 3;      // then +3 seconds passes
@@ -52,8 +52,7 @@ void user_isr( void )
 
 	// 	timeOutCount = 0;
 	// }
-	IFSCLR(0) = 0x8800;
-
+	IFSCLR(0) = 0x8900;
 }
 
 /* Lab-specific initialization goes here */
@@ -113,7 +112,7 @@ void labinit( void )
 
 void showUfo(void){	// funktion för att ladda in ufot i game map.
 	int w = 0;
-	for( w ; w < 19 ; w++){
+	for(w = 0 ; w < 19 ; w++){
 		gameMap[(characterLane*128) + (10 + w)] = (gameMap[(characterLane*128) + (10 + w)] & ufo[w]);
 	} 
 	
@@ -162,12 +161,9 @@ void move_ufo(int direction){ // will accept input to decide whiche direction to
 		int shiftAbove = 7;		// how much to shift the ufo template when spawning
 		int shiftBelow = 1;		// how much to shift the ufo template when despawing
 		int j = 8;				// increment the outer loop
-		int i;					// a counter
+		int i = 0;				// a counter
 		uint8_t temp0[19];		// tempporary image array. for the page we move into
 		uint8_t temp1[19];		// tempporary image array. for the page we are moving from
-
-		
-			
 
 		while (j > 0){	// loops 8 times. 1 for each pixel in a page.
 
@@ -175,28 +171,27 @@ void move_ufo(int direction){ // will accept input to decide whiche direction to
 
 			for (i = 0; i < 19; i++){ // this for loop fills our temp array with a partial image of the ufo. more with every itteration.
 				temp0[i] = ((ufo[i] << shiftAbove) | blanksAbove);	
-				temp1[i] = ((ufo[i] >> shiftBelow)| blanksBelow);	
+				temp1[i] = ((ufo[i] >> shiftBelow) | blanksBelow);	
 			}
 
-			int w = 0;
-			for( w ; w < 19 ; w++){	// this for loop copies out temp value into the map at the right lane
-				gameMap[(characterLane*128) + (10 + w)] = ((gameMap[(characterLane*128) + (10 + w)] | 255/* or 255 to reset the image*/ )
-				& temp0[w]);
-				gameMap[((characterLane + 1)*128) + (10 + w)] = ((gameMap[((characterLane + 1)*128) + (10 + w)] | 255 )	& temp1[w]);
+			for(i = 0 ; i < 19 ; i++){	// this for loop copies out temp value into the map at the right lane
+				gameMap[(characterLane*128) + (10 + i)] = ((gameMap[(characterLane*128) + (10 + i)] | 255/* or 255 to reset the image*/ )
+				& temp0[i]);
+				gameMap[((characterLane + 1)*128) + (10 + i)] = ((gameMap[((characterLane + 1)*128) + (10 + i)] | 255 )	& temp1[i]);
 			} 
-			blanksAbove = (blanksAbove /2); 	// decrements how much blank space should be used above
-			blanksBelow = ((blanksBelow/2) + 128);// increments how much blank space should be used below 
-			shiftAbove -- ;						// decrements how much of the ufo template to remove above
-			shiftBelow ++;						// increments how much of the ufo template to remove below
-			j --;								// counts itterations. 
+			blanksAbove = (blanksAbove / 2); 	// decrements how much blank space should be used above
+			blanksBelow = ((blanksBelow / 2) + 128);// increments how much blank space should be used below 
+			shiftAbove-- ;						// decrements how much of the ufo template to remove above
+			shiftBelow++;						// increments how much of the ufo template to remove below
+			j--;								// counts itterations. 
 
 			//display_update();
 			display_image(0, gameMap);
 
 			while(!(IFS(0) & 0x800)); // delay untill flag event
 		}
-
 	}
+
 	if (direction > 0){		//move downwards
 		int timeOutCount = 0;
 		int blanksBelow = 254;	// to create blanks below the ship as itspawns  
@@ -204,7 +199,7 @@ void move_ufo(int direction){ // will accept input to decide whiche direction to
 		int shiftAbove = 1;		// how much to shift the ufo template when spawning
 		int shiftBelow = 7;		// how much to shift the ufo template when despawing
 		int j = 8;				// increment the outer loop
-		int i;					// a counter
+		int i = 0;				// counter variable
 		uint8_t temp0[19];		// tempporary image array. for the page we move into
 		uint8_t temp1[19];		// tempporary image array. for the page we are moving from
 
@@ -220,16 +215,16 @@ void move_ufo(int direction){ // will accept input to decide whiche direction to
 				temp1[i] = ((ufo[i] >> shiftBelow) | blanksBelow);	
 			}
 
-			int w = 0;
-			for( w ; w < 19 ; w++){	// this for loop copies out temp value into the map at the right lane
-				gameMap[((characterLane - 1)*128) + (10 + w)] = ((gameMap[((characterLane - 1)*128) + (10 + w)] | 255 )	& temp0[w]);
-				gameMap[((characterLane)*128) + (10 + w)] = ((gameMap[((characterLane)*128) + (10 + w)] | 255 )	& temp1[w]);
+			for(i = 0 ; i < 19 ; i++){	// this for loop copies out temp value into the map at the right lane
+				gameMap[((characterLane - 1)*128) + (10 + i)] = ((gameMap[((characterLane - 1)*128) + (10 + i)] | 255 )	& temp0[i]);
+				gameMap[((characterLane)*128) + (10 + i)] = ((gameMap[((characterLane)*128) + (10 + i)] | 255 )	& temp1[i]);
 			} 
-			blanksAbove = ((blanksAbove*2)+1); 	
-			blanksBelow = ((blanksBelow*2)- 256);	
-			shiftAbove ++;						
-			shiftBelow --;						
-			j --;								
+
+			blanksAbove = ((blanksAbove*2) + 1); 	
+			blanksBelow = ((blanksBelow*2) - 256);	
+			shiftAbove++;						
+			shiftBelow--;						
+			j--;								
 
 			//display_update();
 			display_image(0, gameMap);
@@ -241,8 +236,8 @@ void move_ufo(int direction){ // will accept input to decide whiche direction to
 }
 
 void setup_gameMap(void){
-	int row;
-	int column;
+	int row = 0;
+	int column = 0;
 	for(row = 0 ; row < 4 ; row++){			//this loop is for filling the map with the darkness of space.
 		for(column = 0 ; column < 128 ; column++){			
 				gameMap[(row*128) + column] = 255;		
@@ -269,10 +264,10 @@ void create_obstacle (int lane){ // spawns a spaceRock at the end of the map Lan
 void move_obs(int lane){	 //recives lane argument, 0 is top lane 2is bot lane
 	int i = 0;
 	int column;
-	for(column = 116 ; column > 0 ; column--){		//moves the obs. column by column in it's lane
+	for(column = 116 ; column > 0 ; column--){		// moves the obs. column by column in it's lane
 		IFSCLR(0) = 0x8000;							// clear flag for delay
-		for (i = 0; i < 10; i++){					//	updates image
-		gameMap[((lane*128) + column)+i] = gameMap[(((lane*128) + column)+i) | 255] & spaceRock[i];
+		for (i = 0 ; i < 10 ; i++){					// updates image
+		gameMap[((lane*128) + column) + i] = gameMap[(((lane*128) + column) + i) | 255] & spaceRock[i];
 		}
         display_image(0, gameMap);
 		while (!(IFS(0) & 0x8000));// dealy until flag event
