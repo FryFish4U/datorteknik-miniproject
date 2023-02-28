@@ -32,5 +32,3 @@ const uint8_t const exp3[] = {
 const uint8_t const exp4[] = {
     255,    90,    255,     126,    255,     255,    126,      255,
     90,     255};
-
- 
