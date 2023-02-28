@@ -161,7 +161,7 @@ void gameSpeed(){ // code should lower the value of PR4(tickrate 4) when TMR2(co
 
 void move_ufo(int direction){ 	// will accept input to decide whiche direction to move. direction < 0 = upwards. directione > 0 = downwards
 								// updates screen afterwards.
-								
+
 	if (direction < 0){			//move upwards
 		int timeOutCount = 0;
 		int blanksBelow = 128;	// to create blanks below the ship as it leaves the lane
@@ -209,9 +209,6 @@ void move_ufo(int direction){ 	// will accept input to decide whiche direction t
 		uint8_t temp0[19];		// tempporary image array. for the page we move into
 		uint8_t temp1[19];		// tempporary image array. for the page we are moving from
 
-		
-			
-
 		while (j > 0){	// loops 8 times. 1 for each pixel in a page.
 			
 			if(IFS(0) & 0x100){
@@ -233,8 +230,8 @@ void move_ufo(int direction){ 	// will accept input to decide whiche direction t
 
 				//display_update();
 				display_image(0, gameMap);
+				IFSCLR(0) = 0x100;
 			}
-			IFSCLR(0) = 0x100;
 		}
 	}
 
