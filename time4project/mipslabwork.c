@@ -274,7 +274,7 @@ void create_obstacle (int lane){ // spawns a spaceRock at the end of the map Lan
 	display_image(0, gameMap);
 }
 
-void move_obs(void){	//! fucked up here
+void move_obs(void){	//! fucked up from here
 
 	// alla lanes en pixel per call
 
@@ -289,6 +289,8 @@ void move_obs(void){	//! fucked up here
 	}
 	for (lane = 0; lane < 512; lane ++){
 		gameMap[lane] = gameMap[lane] & temp[lane];
+
+						//! to about here
 		timesObsMoved++;
 	}
 	display_image(0,gameMap);
