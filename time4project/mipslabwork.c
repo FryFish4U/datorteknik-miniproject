@@ -411,5 +411,5 @@ void labwork( void )
 	// if(btnOut | 0b1000)	// if the up button is pressed
 	// 	move_ufo(-1);	// move the UFO up
 
-	display_update();
+	//display_update();
 }
