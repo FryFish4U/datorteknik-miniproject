@@ -394,10 +394,6 @@ void labwork( void )
 
 	/* end of test code */
 
-	int btnOut = getbtns();
-	if(btnOut | 0b1010) // if both the up and down buttons are pressed  
-		btnOut = 0;		// set the value of btnOut to 0, UFO wont move
-
 	gameSpeed();
 
 	laneRedirect();
@@ -408,5 +404,5 @@ void labwork( void )
 	// if(btnOut | 0b1000)	// if the up button is pressed
 	// 	move_ufo(-1);	// move the UFO up
 
-	display_update();
+	//display_update();
 }
