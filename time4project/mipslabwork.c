@@ -240,7 +240,7 @@ void move_ufo(int direction){ // will accept input to decide whiche direction to
 void setup_gameMap(void){
 	int row = 0;
 	int column = 0;
-	for(row = 0 ; row < 4 ; row++){			//this loop is for filling the map with things.
+	for(row = 0 ; row < 4 ; row++){			//this loop is for filling the map with the darkness of space.
 		for(column = 0 ; column < 128 ; column++){			
 				gameMap[(row*128) + column] = 255;		
 		}
@@ -263,16 +263,16 @@ void create_obstacle (int lane){ // spawns a spaceRock at the end of the map Lan
     }
 }
 
-void move_obs(int lane){
+void move_obs(int lane){	 //recives lane argument, 0 is top lane 2is bot lane
 	int i = 0;
 	int column;
-	for(column = 116 ; column > 0 ; column--){
-		IFSCLR(0) = 0x8000;
-		for (i = 0 ; i < 10 ; i++){			
+	for(column = 116 ; column > 0 ; column--){		// moves the obs. column by column in it's lane
+		IFSCLR(0) = 0x8000;							// clear flag for delay
+		for (i = 0 ; i < 10 ; i++){					// updates image
 		gameMap[((lane*128) + column) + i] = gameMap[(((lane*128) + column) + i) | 255] & spaceRock[i];
 		}
         display_image(0, gameMap);
-		while (!(IFS(0) & 0x8000));
+		while (!(IFS(0) & 0x8000));// dealy until flag event
 	}
 }
 
