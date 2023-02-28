@@ -133,12 +133,15 @@ void laneRedirect(){
 			characterLane--; // move up
 			move_ufo(-1);
 			pressedBtns = 0; // default pressedBtns
+			volatile int* PortEPointer = (volatile int*) 0xbf886110; // Pointer goes to Port E, register PORTE (LEDs) //! DEBUG
+
 		}
 
 	    if((pressedBtns & 0b100) && (characterLane < 2)){ // move down if btn 2 is pressed
 			characterLane++; // move down
 			move_ufo(1);
 			pressedBtns = 0; // default pressedBtns
+			volatile int* PortEPointer = (volatile int*) 0xbf886110; // Pointer goes to Port E, register PORTE (LEDs) //! DEBUG
 		}
 } 
 
@@ -388,15 +391,15 @@ void explode(int lane){ //! testa funktionen
 /* This function is called repetitively from the main program */
 void labwork( void )
 {
+	volatile int* PortEPointer = (volatile int*) 0xbf886110; // Pointer goes to Port E, register PORTE (LEDs), used for debug purposes
+
   	/* start of test code */
 	
 	//explode(2);
 
 	/* end of test code */
 
-	int btnOut = getbtns();
-	if(btnOut | 0b1010) // if both the up and down buttons are pressed  
-		btnOut = 0;		// set the value of btnOut to 0, UFO wont move
+	*PortEPointer += 1; //! DEBUG
 
 	gameSpeed();
 
