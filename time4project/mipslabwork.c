@@ -26,6 +26,8 @@ int moreThen = 2000;
 
 int gameSpeedUpEvents = 0;
 
+int characterLane = 1;
+
 /* Interrupt Service Routine */
 void user_isr( void )
 {
@@ -98,8 +100,17 @@ void labinit( void )
   return;
 }
 
-extern int characterLane = 1;
 
+void showUfo(void){	// funktion för att ladda in ufot i game map.
+	int w = 0;
+	for( w ; w < 19 ; w++){
+		gameMap[(characterLane*128) + (10 + w)] = (gameMap[(characterLane*128) + (10 + w)] & ufo[w]);
+	} 
+	
+	//display_update();
+	display_image(0, gameMap);
+    return;
+}
 
 int pressedBtns = -1; // int which getbtns should write to. Must be defaulted to -1 after use.
 
@@ -225,17 +236,6 @@ void move_ufo(int direction){ // will accept input to decide whiche direction to
 	return;
 }
 
-void showUfo(void){	// funktion för att ladda in ufot i game map.
-	int w = 0;
-	for( w ; w < 19 ; w++){
-		gameMap[(characterLane*128) + (10 + w)] = (gameMap[(characterLane*128) + (10 + w)] & ufo[w]);
-	} 
-	
-	//display_update();
-	display_image(0, gameMap);
-    return;
-}
-
 void setup_gameMap(void){
 	int row;
 	int column;
@@ -264,36 +264,136 @@ void spawn_obstacle (int lane){ // spawns a spaceRock at the end of the map
 
 void explode(int lane){ //! testa funktionen
 
-    uint8_t temp[10][10];
-    int i;
+    /*int i;
     int j;
-	for (i =;)
-    for(i = 0; i < 7; i++){
-        if(i % 2 == 0){
-            for(j = 0; j < 10; j++){
-                gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp1[i][j];
-        }
-            display_image(0, gameMap);
+	for (i = 0; i < 8; i++){
+		for (j = 0; j < 10; j++){
+			if( i == 0){
+				gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp1[j];
+			}
+			if( i == 1){
+				gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & (exp1[j] & exp2[j]);
+			}
+			if( i == 2){
+				gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp2[j];
+			}
+			if( i == 3){
+				gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & (exp2[j] & exp3[j]);
+			}
+			if( i == 4){
+				gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp3[j];
+			}
+			if( i == 5){
+				gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & (exp3[j] & exp4[j]);
+			}
+			if( i == 6){
+				gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp4[j];
+			}
+			else{
+				gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255);
+			}
+		}
+ 		display_image(0, gameMap);
 
-            delayTest = 0;      //! ska bytas mot timer och interrupt med counter
-            while (delayTest < 100000){
-                delayTest ++;	
-	    }
-    }  
-        else{
-            for(j = 0; j < 10; j++){
-                    gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & (exp1[i][j] & exp1[i+1][j]);
-            }
-            display_image(0, gameMap);
+        delayTest = 0;      //! ska bytas mot timer och interrupt med counter
+        while (delayTest < 900000){
+			delayTest++;
+		}*/
 
-            delayTest = 0;      //! ska bytas mot timer och interrupt med counter
-            while (delayTest < 100000){
-                delayTest ++;	
-            }
-        } 
-    }
+	int j;
+	for(j = 0; j < 10; j++){
+		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp1[j];
+	}
+	display_image(0, gameMap);
+    delayTest = 0;      //! ska bytas mot timer och interrupt med counter
+    while (delayTest < 100000){
+		delayTest++;
+	}
+	for(j = 0; j < 10; j++){
+		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & (exp1[j] & exp2[j]);
+	}
+		display_image(0, gameMap);
+	
+        delayTest = 0;      //! ska bytas mot timer och interrupt med counter
+        while (delayTest < 100000){
+			delayTest++;
+		}
+	for(j = 0; j < 10; j++){
+		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp2[j];
+	}
+		display_image(0, gameMap);
+
+        delayTest = 0;      //! ska bytas mot timer och interrupt med counter
+        while (delayTest < 100000){
+			delayTest++;
+		}
+	for(j = 0; j < 10; j++){
+		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & (exp2[j] & exp3[j]);
+	}
+		display_image(0, gameMap);
+
+        delayTest = 0;      //! ska bytas mot timer och interrupt med counter
+        while (delayTest < 100000){
+			delayTest++;
+		}
+	for(j = 0; j < 10; j++){	
+		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp3[j];
+	}
+		display_image(0, gameMap);
+
+        delayTest = 0;      //! ska bytas mot timer och interrupt med counter
+        while (delayTest < 100000){
+			delayTest++;
+		}
+	for(j = 0; j < 10; j++){
+		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & (exp3[j] & exp4[j]);
+	}
+		display_image(0, gameMap);
+
+        delayTest = 0;      //! ska bytas mot timer och interrupt med counter
+        while (delayTest < 100000){
+			delayTest++;
+		}
+	for(j = 0; j < 10; j++){
+		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp4[j];
+	}
+		display_image(0, gameMap);
+
+        delayTest = 0;      //! ska bytas mot timer och interrupt med counter
+        while (delayTest < 100000){
+			delayTest++;
+		}
+	for(j = 0; j < 10; j++){
+		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255);
+	}
+
+ 		display_image(0, gameMap);
+
+        delayTest = 0;      //! ska bytas mot timer och interrupt med counter
+        while (delayTest < 100000){
+			delayTest++;
+		}
+    // for(i = 0; i < 7; i++){
+    //     if(i % 2 == 0){
+    //         for(j = 0; j < 10; j++){
+                
+    //     }
+           
+	//     }
+    // }  
+    //     else{
+    //         for(j = 0; j < 10; j++){
+    //                 gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & (exp1[i][j] & exp1[i+1][j]);
+    //         }
+    //         display_image(0, gameMap);
+
+    //         delayTest = 0;      //! ska bytas mot timer och interrupt med counter
+    //         while (delayTest < 100000){
+    //             delayTest ++;	
+    //         }
+    //     } 
+    // }
 }
-
 /* This function is called repetitively from the main program */
 void labwork( void )
 {
