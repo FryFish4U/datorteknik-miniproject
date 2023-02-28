@@ -29,7 +29,7 @@ int gameSpeedUpEvents = 0;
 
 int characterLane = 1;
 
-volatile uint32_t delayTest;
+volatile uint32_t delayTest; //! to be discarded
 
 uint8_t gameMap[512];		
 
