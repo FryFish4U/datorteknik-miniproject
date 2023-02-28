@@ -61,9 +61,6 @@ extern const uint8_t const exp2[10];
 extern const uint8_t const exp3[10];
 extern const uint8_t const exp4[10];
 
-int characterLane; // the lane in which the character is in, starts at 128 which is middle, top is 0 and bottom is 256
-
-
 //* legacy code:
 // // display functions
 // void showUfo(void);

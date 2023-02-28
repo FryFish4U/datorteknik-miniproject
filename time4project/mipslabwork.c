@@ -6,7 +6,8 @@
    This file should be changed by YOU! So you must
    add comment(s) here with your name(s) and date(s):
 
-   This file modified 2017-04-31 by Ture Teknolog 
+   This file modified 2017-04-31 by Ture Teknolog
+   This file was modified 2023-03-01 by Alvin Pettersson and David Haendler 
 
    For copyright and licensing, see file COPYING */
 
@@ -398,6 +399,23 @@ void explode(int lane){ //! testa funktionen
     //     } 
     // }
 }
+
+
+// Templates for timer interrupts:
+/* delay with timer 2:
+	if(IFS(0) & 0x800){  // if int.ext.2 flag is 1 
+		//*[CODE THAT SHOULD BE EXECUTED]
+		IFSCLR(0) = 0x800;
+	}
+*/
+
+/* delay with timer 4:
+	if(IFS(0) & 0x8000){  // if int.ext.2 flag is 1 
+		//*[CODE THAT SHOULD BE EXECUTED]
+		IFSCLR(0) = 0x8000;
+	}
+*/
+
 /* This function is called repetitively from the main program */
 void labwork( void )
 {
@@ -409,5 +427,8 @@ void labwork( void )
 	spawn_obstacle (2);
 
 	/* end of test code */
+	
+	gameSpeed();
+
 	display_update();
 }

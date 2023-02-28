@@ -19,7 +19,7 @@ const uint8_t const spaceRock[] = {
 
 const uint8_t const exp1[] = {
     255,    255,    255,     255,    231,     231,    255,      255,
-    255,     255 };
+    255,    255};
 
 const uint8_t const exp2[] = {
     255,    255,    255,     195,    219,     219,    195,      255,
