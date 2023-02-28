@@ -306,15 +306,15 @@ void spawn_obstacle(int bLane){ // bLane checks the 3 LSB and calls a function t
 
 	if(l & 0b100){			// if the 3rd bit is 1, create obstacle in the lowest lane
 		create_obstacle(2);
-		move_obs(2);
+		move_obs(2); //! doesnt work as intended, shouldnt be in this if statement 
 	}	
 	if(l & 0b010){			// if the 2nd bit is 1, create obstacle in the middle lane
 		create_obstacle(1);	
-		move_obs(1);
+		move_obs(1); //! doesnt work as intended, shouldnt be in this if statement
 	}
 	if(l & 0b001){			// if the 1st bit is 1, create obstacle in the top lane
 		create_obstacle(0);
-		move_obs(0);
+		move_obs(0); //! doesnt work as intended, shouldnt be in this if statement
 	}	
 }
 
@@ -406,9 +406,9 @@ void explode(int lane){ //! testa funktionen
 */
 
 /* delay with timer 4:
-	if(IFS(0) & 0x1000){  // if int.ext.2 flag is 1 
+	if(IFS(0) & 0x10000){  // if int.ext.2 flag is 1 
 		//*[CODE THAT SHOULD BE EXECUTED]
-		IFSCLR(0) = 0x1000;
+		IFSCLR(0) = 0x10000;
 	}
 */
 
@@ -421,7 +421,6 @@ void labwork( void )
 		spawn_obstacle(1);
 	}
 
-	/* end of test code */
 	int aaa = 1;
 	while(aaa){
 	if(IFS(0) & 0x100){  // if int.ext.2 flag is 1 
@@ -431,9 +430,11 @@ void labwork( void )
 			*PortEPointer += 1; //! DEBUG		
 		IFSCLR(0) = 0x100;
 		aaa = 0;
-		}
-		
+		}	
 	}
+
+	/* end of test code */
+
 
 	//* uses rng to spawn obstacles:
 	/* 
