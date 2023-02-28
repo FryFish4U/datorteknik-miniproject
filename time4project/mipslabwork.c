@@ -398,8 +398,17 @@ void labwork( void )
 	//explode(2);
 
 	/* end of test code */
+	int aaa = 1;
+	while(aaa){
+	if(IFS(0) & 0x800){  // if int.ext.2 flag is 1 
+		if((*PortEPointer & 0xffffff00) + 255 == *PortEPointer) //! DEBUG
+    		*PortEPointer = (*PortEPointer & 0xffffff00); // lets all binary 1s be unchanged except the ones in the last 2 byte //! DEBUG
+  		else					//! DEBUG
+			*PortEPointer += 1; //! DEBUG		
+		IFSCLR(0) = 0x800;
+		aaa = 0;
+	}
 
-	*PortEPointer += 1; //! DEBUG
 
 	gameSpeed();
 
