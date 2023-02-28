@@ -390,10 +390,6 @@ void labwork( void )
 {
   	/* start of test code */
 	
-	
-	characterLane = 2;
-	create_obstacle(2);
-	move_obs(2);
 	//explode(2);
 
 	/* end of test code */
