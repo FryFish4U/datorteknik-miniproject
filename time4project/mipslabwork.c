@@ -175,7 +175,7 @@ void move_ufo(int direction){ 	// will accept input to decide whiche direction t
 
 		while (j > 0){	// loops 8 times. 1 for each pixel in a page.
 
-			IFSCLR(0) = 0x800; // reset flag for delay
+			IFSCLR(0) = 0x100; // reset flag for delay
 
 			for (i = 0; i < 19; i++){ // this for loop fills our temp array with a partial image of the ufo. more with every itteration.
 				temp0[i] = ((ufo[i] << shiftAbove) | blanksAbove);	
@@ -196,7 +196,7 @@ void move_ufo(int direction){ 	// will accept input to decide whiche direction t
 			//display_update();
 			display_image(0, gameMap);
 
-			while(!(IFS(0) & 0x800)); // delay untill flag event
+			while(!(IFS(0) & 0x100)); // delay untill flag event
 		}
 	}
 
@@ -216,7 +216,7 @@ void move_ufo(int direction){ 	// will accept input to decide whiche direction t
 
 		while (j > 0){	// loops 8 times. 1 for each pixel in a page.
 			
-			IFSCLR(0) = 0x800; //reset flag for delay
+			IFSCLR(0) = 0x100; //reset flag for delay
 
 			for (i = 0; i < 19; i++){ // this for loop fills our temp array with a partial image of the ufo. more with every itteration.
 				temp0[i] = ((ufo[i] << shiftAbove) | blanksAbove);
@@ -237,7 +237,7 @@ void move_ufo(int direction){ 	// will accept input to decide whiche direction t
 			//display_update();
 			display_image(0, gameMap);
 
-			while(!(IFS(0) & 0x800));  // delay untill flag event
+			while(!(IFS(0) & 0x100));  // delay untill flag event
 		}
 	}
 	return;
@@ -273,12 +273,12 @@ void move_obs(int lane){	 //recives lane argument, 0 is top lane 2is bot lane
 	int i = 0;
 	int column;
 	for(column = 116 ; column > 0 ; column--){		// moves the obs. column by column in it's lane
-		IFSCLR(0) = 0x8000;							// clear flag for delay
+		IFSCLR(0) = 0x1000;							// clear flag for delay
 		for (i = 0 ; i < 10 ; i++){					// updates image
 		gameMap[((lane*128) + column) + i] = gameMap[(((lane*128) + column) + i) | 255] & spaceRock[i];
 		}
         display_image(0, gameMap);
-		while (!(IFS(0) & 0x8000));// dealy until flag event
+		while (!(IFS(0) & 0x1000));// dealy until flag event
 	}
 }
 
@@ -378,16 +378,16 @@ void explode(int lane){ //! testa funktionen
 
 //? Templates for timer interrupts:
 /* delay with timer 2:
-	if(IFS(0) & 0x800){  // if int.ext.2 flag is 1 
+	if(IFS(0) & 0x100){  // if int.ext.2 flag is 1 
 		//*[CODE THAT SHOULD BE EXECUTED]
-		IFSCLR(0) = 0x800;
+		IFSCLR(0) = 0x100;
 	}
 */
 
 /* delay with timer 4:
-	if(IFS(0) & 0x8000){  // if int.ext.2 flag is 1 
+	if(IFS(0) & 0x1000){  // if int.ext.2 flag is 1 
 		//*[CODE THAT SHOULD BE EXECUTED]
-		IFSCLR(0) = 0x8000;
+		IFSCLR(0) = 0x1000;
 	}
 */
 
@@ -401,12 +401,12 @@ void labwork( void )
 	/* end of test code */
 	int aaa = 1;
 	while(aaa){
-	if(IFS(0) & 0x800){  // if int.ext.2 flag is 1 
+	if(IFS(0) & 0x100){  // if int.ext.2 flag is 1 
 		if((*PortEPointer & 0xffffff00) + 255 == *PortEPointer) //! DEBUG
     		*PortEPointer = (*PortEPointer & 0xffffff00); // lets all binary 1s be unchanged except the ones in the last 2 byte //! DEBUG
   		else					//! DEBUG
 			*PortEPointer += 1; //! DEBUG		
-		IFSCLR(0) = 0x800;
+		IFSCLR(0) = 0x100;
 		aaa = 0;
 		}
 	}
