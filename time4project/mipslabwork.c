@@ -292,6 +292,22 @@ void spawn_obstacle(int bLane){ // bLane checks the 3 LSB and calls a function t
 		create_obstacle(0);	
 }
 
+int randomInt(char incl0, int toInt){ // generates a random number from 1 (or 0 if incl0 > 0) to toInt  
+	//* https://www.tutorialspoint.com/c_standard_library/c_function_srand.htm
+	
+	int internIncl0 = 1;
+
+	if(!incl0) // if incl0 is 0
+		internIncl0 = 0; // set internIncl0 = 1 
+	
+	unsigned int seed = TMR2; // seed value is equal the current tick value
+	int randomInt = 0;  
+
+	srand(seed); // seeds rand() with TMR2 value
+	randomInt = (rand() % toInt) + incl0; // generates a number between (either 0 or 1 depending on toInt) and toInt
+	return randomInt;
+}
+
 void explode(int lane){ //! testa funktionen
 
 	int j;
@@ -408,7 +424,6 @@ void labwork( void )
 
 
 	gameSpeed();
-
 	laneRedirect();
 
 	// if(btnOut | 0b0010)	// if the down button is pressed
