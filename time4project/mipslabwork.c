@@ -22,35 +22,37 @@ int timeOutCount = 0; //! temp mby, should be able to use integrated counter
 
 int prime = 1234567;
 
-extern int characterLane = 1;
-
 int moreThen = 2000;
 
 int gameSpeedUpEvents = 0;
 
 int characterLane = 1;
 
+volatile uint32_t delayTest;
+
+uint8_t gameMap[512];		
+
 /* Interrupt Service Routine */
 void user_isr( void )
 {
-	if(IFS(0) & 0x800){  // if int.ext.2 flag is 1 
-		mytime += 3;      // then +3 seconds passes
-		IFSCLR(0) = 0x800;
-	}
+	// if(IFS(0) & 0x800){  // if int.ext.2 flag is 1 
+	// 	mytime += 3;      // then +3 seconds passes
+	// 	IFSCLR(0) = 0x800;
+	// }
 
-	if(IFS(0) & 0x100){
-	timeOutCount++;
+	// if(IFS(0) & 0x100){
+	// timeOutCount++;
 
-	if(timeOutCount >= 10){
-		time2string( textstring, mytime );
-		display_string( 3, textstring );
-		display_update();
-		tick( &mytime );
+	// if(timeOutCount >= 10){
+	// 	time2string( textstring, mytime );
+	// 	display_string( 3, textstring );
+	// 	display_update();
+	// 	tick( &mytime );
 
-		timeOutCount = 0;
-	}
-	IFSCLR(0) = 0x100;
-	}
+	// 	timeOutCount = 0;
+	// }
+	IFSCLR(0) = 0x8800;
+
 }
 
 /* Lab-specific initialization goes here */
@@ -149,8 +151,6 @@ void gameSpeed(){ // code should lower the value of PR4(tickrate 4) when TMR2(co
 	}
 }
 
-volatile uint32_t delayTest;
-
 void move_ufo(int direction){ // will accept input to decide whiche direction to move. 
 
 	if (direction < 0){		//move upwards
@@ -189,10 +189,10 @@ void move_ufo(int direction){ // will accept input to decide whiche direction to
 			//display_update();
 			display_image(0, gameMap);
 
-			delayTest = 0;      //! ska bytas mot timer och interrupt med counter
-			while (delayTest < 100000){
-				delayTest ++;
-			}
+			// delayTest = 0;      //! ska bytas mot timer och interrupt med counter
+			// while (delayTest < 100000){
+			// 	delayTest ++;
+			// }
 		}
 
 	}
@@ -210,7 +210,7 @@ void move_ufo(int direction){ // will accept input to decide whiche direction to
 		
 			
 
-		while (j > 0){	// loops 8 times. 1 for each pixel in a page. //! ska skrivas om för att flytta neråt!!
+		while (j > 0){	// loops 8 times. 1 for each pixel in a page.
 
 			for (i = 0; i < 19; i++){ // this for loop fills our temp array with a partial image of the ufo. more with every itteration.
 				temp0[i] = ((ufo[i] << shiftAbove) | blanksAbove);
@@ -222,19 +222,19 @@ void move_ufo(int direction){ // will accept input to decide whiche direction to
 				gameMap[((characterLane - 1)*128) + (10 + w)] = ((gameMap[((characterLane - 1)*128) + (10 + w)] | 255 )	& temp0[w]);
 				gameMap[((characterLane)*128) + (10 + w)] = ((gameMap[((characterLane)*128) + (10 + w)] | 255 )	& temp1[w]);
 			} 
-			blanksAbove = ((blanksAbove*2)+1); 	// decrements how much blank space should be used above
-			blanksBelow = ((blanksBelow*2)- 256);	// increments how much blank space should be used below 
-			shiftAbove ++;						// decrements how much of the ufo template to remove above
-			shiftBelow --;						// increments how much of the ufo template to remove below
-			j --;								// counts itterations. 
+			blanksAbove = ((blanksAbove*2)+1); 	
+			blanksBelow = ((blanksBelow*2)- 256);	
+			shiftAbove ++;						
+			shiftBelow --;						
+			j --;								
 
 			//display_update();
 			display_image(0, gameMap);
 
-			delayTest = 0;  //! ska bytas mot timer och interrupt med counter
-			while (delayTest < 1000000){
-				delayTest ++;
-			}
+			// delayTest = 0;  //! ska bytas mot timer och interrupt med counter
+			// while (delayTest < 1000000){
+			// 	delayTest ++;
+			// }
 		}
 	}
 	return;
@@ -259,10 +259,10 @@ void spawn_obstacle (int lane){ // spawns a spaceRock at the end of the map
 
         display_image(0, gameMap);
 
-		delayTest = 0;      //! ska bytas mot timer och interrupt med counter
-		while (delayTest < 100000){
-			delayTest ++;	
-	    }   
+		// delayTest = 0;      //! ska bytas mot timer och interrupt med counter
+		// while (delayTest < 100000){
+		// 	delayTest ++;	
+	    // }   
     }
 }
 
@@ -402,12 +402,14 @@ void explode(int lane){ //! testa funktionen
 void labwork( void )
 {
   	/* start of test code */
+	display_update();
 	setup_gameMap();
 	showUfo();
 	characterLane = 2;
  	move_ufo(1);
 	spawn_obstacle (2);
+	//explode(2);
 
 	/* end of test code */
-	display_update();
+	//display_update();
 }

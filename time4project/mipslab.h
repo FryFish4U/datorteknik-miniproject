@@ -70,7 +70,7 @@ int characterLane; // the lane in which the character is in, starts at 128 which
 // void move_ufo(int);
 // void setup_gameMap(void);
 // void spawn_obstacle(int);
-uint8_t gameMap[512];		// array for the basic map
+// array for the basic map
 
 //* legacy code:
 // // init functions:

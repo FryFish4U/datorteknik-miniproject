@@ -36,6 +36,7 @@
   "C_Cpp_Runner.useAddressSanitizer": false,
   "files.associations": {
     "porjectlib.h": "c",
-    "pic32mx.h": "c"
+    "pic32mx.h": "c",
+    "mipslab.h": "c"
   }
 }
