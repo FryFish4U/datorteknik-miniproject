@@ -25,7 +25,8 @@ int prime = 1234567;
 
 int moreThen = 2000;
 
-int gameSpeedUpEvents = 0;
+int gameSpeedUpEvents = 0; // amount of times PR4 has changed its value
+int timesObsMoved = 0;
 
 int characterLane = 1;
 
@@ -112,6 +113,21 @@ void labinit( void )
 	return;
 }
 
+int randomInt(char incl0, int toInt){ // generates a random number from 1 (or 0 if incl0 > 0) to toInt  
+	//* https://www.tutorialspoint.com/c_standard_library/c_function_srand.htm
+	
+	int internIncl0 = 1;
+
+	if(!incl0) // if incl0 is 0
+		internIncl0 = 0; // set internIncl0 = 1 
+	
+	unsigned int seed = TMR2; // seed value is equal the current tick value
+	int randomInt = 0;  
+
+	srand(seed); // seeds rand() with TMR2 value
+	randomInt = (rand() % toInt) + incl0; // generates a number between (either 0 or 1 depending on toInt) and toInt
+	return randomInt;
+}
 
 void showUfo(void){	// funktion för att ladda in ufot i game map.
 	int w = 0;
@@ -273,6 +289,7 @@ void move_obs(void){	//! fucked up here
 	}
 	for (lane = 0; lane < 512; lane ++){
 		gameMap[lane] = gameMap[lane] & temp[lane];
+		timesObsMoved++;
 	}
 	display_image(0,gameMap);
 	showUfo();
@@ -295,6 +312,7 @@ void move_obs(void){	//! fucked up here
 
 void spawn_obstacle(int bLane){ // bLane checks the 3 LSB and calls a function to create obstacles 
 								// in the lanes corresponded by the bits. 
+	
 	int l = bLane & 0b111;
 
 	if(l == 0b111)	// if all three lanes should get an obstacle
@@ -415,9 +433,9 @@ void explode(int lane){ //! will not use
 */
 
 /* delay with timer 4:
-	if(IFS(0) & 0x1000){  // if int.ext.2 flag is 1 
+	if(IFS(0) & 0x10000){  // if int.ext.2 flag is 1 
 		//*[CODE THAT SHOULD BE EXECUTED]
-		IFSCLR(0) = 0x1000;
+		IFSCLR(0) = 0x10000;
 	}
 */
 
@@ -430,7 +448,6 @@ void labwork( void )
 		spawn_obstacle(0b11);
 	}
 
-	/* end of test code */
 	int aaa = 1;
 	while(aaa){
 	if(IFS(0) & 0x100){  // if int.ext.2 flag is 1 
@@ -442,10 +459,19 @@ void labwork( void )
 
 		IFSCLR(0) = 0x100;
 		aaa = 0;
-		}
-		
+		}	
 	}
 
+	/* end of test code */
+
+
+	//* uses rng to spawn obstacles:
+	/* 
+	if(timesObsMoved > 30){ // if obstacles has moved 25 pixels //todo: might be able to scale this to difficulity
+		timesObsMoved = 0;	// reset timesObsMoved
+		spawn_obstacle(randomInt(NULL, 6)); // and spawn random obstacles //! might fuck up, heard srand doesnt work on chipkit
+	}
+	*/
 
 	gameSpeed();
 	laneRedirect();
