@@ -37,6 +37,7 @@
   "files.associations": {
     "porjectlib.h": "c",
     "pic32mx.h": "c",
-    "mipslab.h": "c"
+    "mipslab.h": "c",
+    "cstdlib": "c"
   }
 }
