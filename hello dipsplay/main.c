@@ -324,6 +324,7 @@ int main(void) {
 	characterLane = 2;
  	move_ufo(1);
 	spawn_obstacle (2);
+	explode (2);
 	//Testing
 
 	return 0;

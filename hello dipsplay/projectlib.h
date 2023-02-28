@@ -24,6 +24,7 @@ void showUfo(void);
 void move_ufo(int direction);
 void setup_gameMap(void);
 void spawn_obstacle(int lane);
+void explode(int lane);
 uint8_t gameMap[512];		// array for the basic map
 
 // init functions:
