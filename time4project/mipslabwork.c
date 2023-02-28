@@ -74,8 +74,8 @@ void labinit( void )
 	IPC(2) = 0x1f; // priority 7 sub prio 3 - aka highest priority
 	IECSET(0) = 0x100; // enable timer 2 flag
 
-	IPCSET(2) = 0x8e000000; // prio 7 subprio 2 
-	IECSET(0) = 0x800; // enable ext.int.2
+	//IPCSET(2) = 0x8e000000; // prio 7 subprio 2 
+	//IECSET(0) = 0x800; // enable ext.int.2
 
 	IFSCLR(0) = 0x100; // clear timer interupt
 
@@ -92,15 +92,15 @@ void labinit( void )
 	PR4 = 0x7a12;       // 16 bit register - since timer only uses 4 bytes
 						// - lower number means slower clock (int value defines tick rate)
 
-	IPC(4) = 0x4;       // priority 2 (0b 0100)
-	IPCSET(4) = 0x1;    // sub prio 1 (0b xxx1)
+	IPC(4) = 0x1f;       // priority 2 (0b 0100)
+
 	IECSET(0) = 0x10000;  // enable timer 4 flag
-	IFSCLR(0) = 0x10000;
-	IECSET(0) = 0x8000; // enable ext.int.4
+	IFSCLR(0) = 0x10000;	// clear timer 4 flag
+	//IECSET(0) = 0x8000; // enable ext.int.4
 
-	IPCSET(4) = 0x8e000000; // prio 7 subprio 2 
+	//IPCSET(4) = 0x8e000000; // prio 7 subprio 2 
 
-	T4CONSET = 0x8000; // starts timer - adviced to start at end to minimalize problems
+	T4CONSET = 0x10000; // starts timer - adviced to start at end to minimalize problems
 	/* end of timer 4 init */
 
 
@@ -159,6 +159,7 @@ void gameSpeed(){ // code should lower the value of PR4(tickrate 4) when TMR2(co
 	}
 }
 
+//! move ufo works but the whole game locks while it is moving
 void move_ufo(int direction){ 	// will accept input to decide whiche direction to move. direction < 0 = upwards. directione > 0 = downwards
 								// updates screen afterwards.
 
@@ -253,30 +254,43 @@ void create_obstacle (int lane){ // spawns a spaceRock at the end of the map Lan
 	for(column = 127 ; column > 117 ; column--){			
 		gameMap[(lane*128) + column] = gameMap[((lane*128) + column) | 255] & spaceRock[i];
         i++;
-
-        display_image(0, gameMap);
-
-		// delayTest = 0;      //! ska bytas mot timer och interrupt med counter
-		// while (delayTest < 100000){
-		// 	delayTest ++;	
-	    // }   
     }
+	display_image(0, gameMap);
 }
 
-void move_obs(int lane){	 //recives lane argument, 0 is top lane 2is bot lane
+void move_obs(void){	//! fucked up here
 
-	int i = 0;
-	int column;
-	if(IFS(0) & 0x10000){  // if int.ext.2 flag is 1 
-		*PortEPointer = 0; //! DEBUG
-	for(column = 116 ; column > 0 ; column--){		// moves the obs. column by column in it's lane
-		for (i = 0 ; i < 10 ; i++){					// updates image
-			gameMap[((lane*128) + column) + i] = gameMap[(((lane*128) + column) + i) | 255] & spaceRock[i];
-			}
+	// alla lanes en pixel per call
+
+	int lane = 0;
+	int column = 0;
+	uint8_t temp[512];
+	for (lane = 0; lane < 3; lane++){
+		for(column = 0; column <127; column++){
+			temp[((lane*128) + column)] = (gameMap[((lane*128) + (column + 1))] |255);
 		}
-		IFSCLR(0) = 0x10000;
-        display_image(0, gameMap);
+		temp[(lane* 128) + 127] = 255;
 	}
+	for (lane = 0; lane < 512; lane ++){
+		gameMap[lane] = gameMap[lane] & temp[lane];
+	}
+	display_image(0,gameMap);
+	showUfo();
+	
+	// int i = 0;
+	// int column;
+	
+	// //if(IFS(0) & 0x100){  // if int.ext.2 flag is 1 
+	// for(column = 116 ; column > 0 ; column--){		// moves the obs. column by column in it's lane
+	// 	for (i = 0 ; i < 10 ; i++){					// updates image
+	// 		gameMap[((lane*128) + column) + i] = gameMap[(((lane*128) + column) + i) | 255] & spaceRock[i];
+	// 		*PortEPointer += 1; //! DEBUG
+	// 		gameMap[((lane*128) + column) + 11] = 255;
+	// 		}
+	// 	}
+	// 	//IFSCLR(0) = 0x100;
+    //     display_image(0, gameMap);
+	// //}
 }
 
 void spawn_obstacle(int bLane){ // bLane checks the 3 LSB and calls a function to create obstacles 
@@ -288,42 +302,39 @@ void spawn_obstacle(int bLane){ // bLane checks the 3 LSB and calls a function t
 
 	if(l & 0b100){			// if the 3rd bit is 1, create obstacle in the lowest lane
 		create_obstacle(2);
-		move_obs(2);
 	}	
 	if(l & 0b010){			// if the 2nd bit is 1, create obstacle in the middle lane
 		create_obstacle(1);	
-		move_obs(1);
 	}
 	if(l & 0b001){			// if the 1st bit is 1, create obstacle in the top lane
 		create_obstacle(0);
-		move_obs(0);
 	}	
 }
-
-int randomInt(char incl0, int toInt){ // generates a random number from 1 (or 0 if incl0 > 0) to toInt  
-	//* https://www.tutorialspoint.com/c_standard_library/c_function_srand.htm
+//! Ska testas också
+// int randomInt(char incl0, int toInt){ // generates a random number from 1 (or 0 if incl0 > 0) to toInt  
+// 	//* https://www.tutorialspoint.com/c_standard_library/c_function_srand.htm
 	
-	int internIncl0 = 1;
+// 	int internIncl0 = 1;
 
-	if(!incl0) // if incl0 is 0
-		internIncl0 = 0; // set internIncl0 = 1 
+// 	if(!incl0) // if incl0 is 0
+// 		internIncl0 = 0; // set internIncl0 = 1 
 	
-	unsigned int seed = TMR2; // seed value is equal the current tick value
-	int randomInt = 0;  
+// 	unsigned int seed = TMR2; // seed value is equal the current tick value
+// 	int randomInt = 0;  
 
-	srand(seed); // seeds rand() with TMR2 value
-	randomInt = (rand() % toInt) + incl0; // generates a number between (either 0 or 1 depending on toInt) and toInt
-	return randomInt;
-}
+// 	srand(seed); // seeds rand() with TMR2 value
+// 	randomInt = (rand() % toInt) + incl0; // generates a number between (either 0 or 1 depending on toInt) and toInt
+// 	return randomInt;
+// }
 
-void explode(int lane){ //! testa funktionen
+void explode(int lane){ //! will not use
 
 	int j;
 	for(j = 0; j < 10; j++){
 		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp1[j];
 	}
 	display_image(0, gameMap);
-    delayTest = 0;      //! ska bytas mot timer och interrupt med counter
+    delayTest = 0;      
     while (delayTest < 100000){
 		delayTest++;
 	}
@@ -332,7 +343,7 @@ void explode(int lane){ //! testa funktionen
 	}
 		display_image(0, gameMap);
 	
-        delayTest = 0;      //! ska bytas mot timer och interrupt med counter
+        delayTest = 0;     
         while (delayTest < 100000){
 			delayTest++;
 		}
@@ -341,7 +352,7 @@ void explode(int lane){ //! testa funktionen
 	}
 		display_image(0, gameMap);
 
-        delayTest = 0;      //! ska bytas mot timer och interrupt med counter
+        delayTest = 0;    
         while (delayTest < 100000){
 			delayTest++;
 		}
@@ -350,7 +361,7 @@ void explode(int lane){ //! testa funktionen
 	}
 		display_image(0, gameMap);
 
-        delayTest = 0;      //! ska bytas mot timer och interrupt med counter
+        delayTest = 0;     
         while (delayTest < 100000){
 			delayTest++;
 		}
@@ -359,7 +370,7 @@ void explode(int lane){ //! testa funktionen
 	}
 		display_image(0, gameMap);
 
-        delayTest = 0;      //! ska bytas mot timer och interrupt med counter
+        delayTest = 0;     
         while (delayTest < 100000){
 			delayTest++;
 		}
@@ -368,7 +379,7 @@ void explode(int lane){ //! testa funktionen
 	}
 		display_image(0, gameMap);
 
-        delayTest = 0;      //! ska bytas mot timer och interrupt med counter
+        delayTest = 0;      
         while (delayTest < 100000){
 			delayTest++;
 		}
@@ -377,7 +388,7 @@ void explode(int lane){ //! testa funktionen
 	}
 		display_image(0, gameMap);
 
-        delayTest = 0;      //! ska bytas mot timer och interrupt med counter
+        delayTest = 0;     
         while (delayTest < 100000){
 			delayTest++;
 		}
@@ -387,7 +398,7 @@ void explode(int lane){ //! testa funktionen
 
  		display_image(0, gameMap);
 
-        delayTest = 0;      //! ska bytas mot timer och interrupt med counter
+        delayTest = 0;  
         while (delayTest < 100000){
 			delayTest++;
 		}
@@ -416,7 +427,7 @@ void labwork( void )
   	/* start of test code */
 	
 	if (getbtns() & 0b010){
-		spawn_obstacle(1);
+		spawn_obstacle(0b11);
 	}
 
 	/* end of test code */
@@ -426,7 +437,9 @@ void labwork( void )
 		if((*PortEPointer & 0xffffff00) + 255 == *PortEPointer) //! DEBUG
     		*PortEPointer = (*PortEPointer & 0xffffff00); // lets all binary 1s be unchanged except the ones in the last 2 byte //! DEBUG
   		else					//! DEBUG
-			*PortEPointer += 1; //! DEBUG		
+			*PortEPointer += 1; //! DEBUG
+			move_obs();
+
 		IFSCLR(0) = 0x100;
 		aaa = 0;
 		}
