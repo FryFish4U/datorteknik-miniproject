@@ -133,13 +133,11 @@ void laneRedirect(){
 			
 		if(pressedBtns & 0b001 && characterLane > 0){ // move up if btn 4 is pressed
 			characterLane--; // move up
-			showUfo();
 			pressedBtns = -1; // default pressedBtns
 		}
 
 	    if(pressedBtns & 0b100 && characterLane < 2){ // move down if btn 2 is pressed
 			characterLane++; // move down
-			showUfo();
 			pressedBtns = -1; // default pressedBtns
 		}
 } 
@@ -394,10 +392,6 @@ void labwork( void )
 {
   	/* start of test code */
 	
-	
-	characterLane = 2;
-	create_obstacle(2);
-	move_obs(2);
 	//explode(2);
 
 	/* end of test code */
