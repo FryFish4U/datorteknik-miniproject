@@ -94,8 +94,8 @@ void labinit( void )
 
 	IPC(4) = 0x4;       // priority 2 (0b 0100)
 	IPCSET(4) = 0x1;    // sub prio 1 (0b xxx1)
-	IECSET(0) = 0x1000;  // enable timer 4 flag
-
+	IECSET(0) = 0x10000;  // enable timer 4 flag
+	IFSCLR(0) = 0x10000;
 	IECSET(0) = 0x8000; // enable ext.int.4
 
 	IPCSET(4) = 0x8e000000; // prio 7 subprio 2 
@@ -212,6 +212,7 @@ void move_ufo(int direction){ 	// will accept input to decide whiche direction t
 		while (j > 0){	// loops 8 times. 1 for each pixel in a page.
 			
 			if(IFS(0) & 0x100){
+				IFSCLR(0) = 0x100;
 				for (i = 0; i < 19; i++){ // this for loop fills our temp array with a partial image of the ufo. more with every itteration.
 					temp0[i] = ((ufo[i] << shiftAbove) | blanksAbove);
 					temp1[i] = ((ufo[i] >> shiftBelow) | blanksBelow);	
@@ -228,9 +229,7 @@ void move_ufo(int direction){ 	// will accept input to decide whiche direction t
 				shiftBelow--;						
 				j--;								
 
-				//display_update();
 				display_image(0, gameMap);
-				IFSCLR(0) = 0x100;
 			}
 		}
 	}
@@ -265,15 +264,18 @@ void create_obstacle (int lane){ // spawns a spaceRock at the end of the map Lan
 }
 
 void move_obs(int lane){	 //recives lane argument, 0 is top lane 2is bot lane
+
 	int i = 0;
 	int column;
+	if(IFS(0) & 0x10000){  // if int.ext.2 flag is 1 
+		*PortEPointer = 0; //! DEBUG
 	for(column = 116 ; column > 0 ; column--){		// moves the obs. column by column in it's lane
-		IFSCLR(0) = 0x1000;							// clear flag for delay
 		for (i = 0 ; i < 10 ; i++){					// updates image
-		gameMap[((lane*128) + column) + i] = gameMap[(((lane*128) + column) + i) | 255] & spaceRock[i];
+			gameMap[((lane*128) + column) + i] = gameMap[(((lane*128) + column) + i) | 255] & spaceRock[i];
+			}
 		}
+		IFSCLR(0) = 0x10000;
         display_image(0, gameMap);
-		while (!(IFS(0) & 0x1000));// dealy until flag event
 	}
 }
 
@@ -284,12 +286,18 @@ void spawn_obstacle(int bLane){ // bLane checks the 3 LSB and calls a function t
 	if(l == 0b111)	// if all three lanes should get an obstacle
 		return;		// return, due to them being impossible for the player to avoid 
 
-	if(l & 0b100)			// if the 3rd bit is 1, create obstacle in the lowest lane
-		create_obstacle(2);	
-	if(l & 0b010)			// if the 2nd bit is 1, create obstacle in the middle lane
+	if(l & 0b100){			// if the 3rd bit is 1, create obstacle in the lowest lane
+		create_obstacle(2);
+		move_obs(2);
+	}	
+	if(l & 0b010){			// if the 2nd bit is 1, create obstacle in the middle lane
 		create_obstacle(1);	
-	if(l & 0b001)			// if the 1st bit is 1, create obstacle in the top lane
-		create_obstacle(0);	
+		move_obs(1);
+	}
+	if(l & 0b001){			// if the 1st bit is 1, create obstacle in the top lane
+		create_obstacle(0);
+		move_obs(0);
+	}	
 }
 
 void explode(int lane){ //! testa funktionen
@@ -391,7 +399,9 @@ void labwork( void )
 {
   	/* start of test code */
 	
-	//explode(2);
+	if (getbtns() & 0b010){
+		spawn_obstacle(1);
+	}
 
 	/* end of test code */
 	int aaa = 1;
@@ -404,6 +414,7 @@ void labwork( void )
 		IFSCLR(0) = 0x100;
 		aaa = 0;
 		}
+		
 	}
 
 
