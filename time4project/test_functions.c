@@ -24,7 +24,7 @@ void setup_ufo_area(void) {
 }
 
 void setup_ufo(void){
-    // setting up the ufo on the map. should only be called once. goes in labinit
+    // setting up the ufo_area on the map. should only be called once. goes in labinit
     int i = 0;
     int j = 0;
 
@@ -41,8 +41,8 @@ void setup_ufo(void){
     display_image(0,map);
 }
 void map_update(void){
-//what is meant to be done here is to combine all the new information on the top three pages and display it.
-//this is done once with every flag event from timer 2
+//what is meant to be done here is to combine all the new information on the top three pages of the display and show it.
+//this is done once with every flag event from timer 2 (if possible, 30 times per second?)
     int i = 0;
     int j = 0;
 
@@ -105,12 +105,14 @@ void move_ufo (int direction){
 
 void move_obs(void){ 
 //This function will upgrade the obs area from row to move all current obs one row to the left
-// should be executed once at every flag event of timer 4
+// should be executed once at every flag event of timer 4 (at first maybe 10time per second with increasing speed if possible.)
 // also spawns obstacles
     int i = 0;
     int j = 0;
     timer4counter ++;
 
+    //spawn part
+    //if 24 flags, then spawn obstacle:
     if (timer4counter == 24){
         for (i = 0; i < 3; i++){
             int k = 0;
@@ -122,6 +124,8 @@ void move_obs(void){
         timer4counter = 0;
     }
 
+    // this part will move everything one pixel to the left on screen.
+    // everytime this function is called, this part should be executed, but if spawn is done, this should execute after spawn
     for (i = 0; i < 3; i++){
         for (j = 0; j < 147; j++){
             obs_area[(i*148) + j] = (255 & obs_area[(i*148) + (j+1)]);
