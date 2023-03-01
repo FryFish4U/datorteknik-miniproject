@@ -2,6 +2,8 @@
 #include <pic32mx.h>  /* Declarations of system-specific addresses etc */
 #include "mipslab.h"  /* Declatations for these labs */
 
+
+//! for these to work, i will need to rewrite the display_image function slightly.
 //Overhead function
 
 void setup_ufo_area(void) {
@@ -61,10 +63,14 @@ uint8_t map[384];
 uint8_t obs_area[444]; //it is biggger than map. goes from ((0 to 2) *148). spot (((0 to 2) *148) + 10) until(( (0 to 2) *148) + 137) overlaps with map
 uint8_t ufo_area[57]; // goes from (0 to 2) *19) area is placed in (((0 to 2) *128) + 10)
 
+// globally used variables
+int timer4counter = 0;
+
 //movement
 void move_ufo (int direction){
 // this function will move the ufo in the direction that is indicated by the argument by one pixel at the time for as long as the buttun is held.
-//this will be done by udating a set area of pixels in page 0-2 row 9 to 28'
+// this will be done by udating a set area of pixels in determained by ufo_area
+
     uint32_t temp[19];
     int i = 0;
     int j = 0;
@@ -97,13 +103,29 @@ void move_ufo (int direction){
     }
 }
 
-void move_obs(void){
-//This function will upgrade the obs area from row to move all current obs one row to the left (128 rows)
+void move_obs(void){ 
+//This function will upgrade the obs area from row to move all current obs one row to the left
+// should be executed once at every flag event of timer 4
+// also spawns obstacles
+    int i = 0;
+    int j = 0;
+    timer4counter ++;
 
+    if (timer4counter == 24){
+        for (i = 0; i < 3; i++){
+            int k = 0;
+            for (j = 136; j < 147; j++){
+                obs_area[j + (i*147)] = (255 & spaceRock[k]); //! right now, if I am correct, thsi will spawn one obstacle in each lane.
+                k++;                                          //! conditions must be set so that this will only happen in maximum 2 lanes at a time
+            }                                                 //! there should be 6 different situations. lane 1,2,3,1+2,1+3 or 2+3.
+        }                                                     //! can this be done wit some kind of loop or do we need 6 different "if" statements?
+        timer4counter = 0;
+    }
 
-}
-void spawn_obs(void){
-    // at every 24th flag of timer 4 the obs are that is furthest to the right 
-    // Will be updated with obstacles
-    // there can be at most 2 obstacles in one row.
+    for (i = 0; i < 3; i++){
+        for (j = 0; j < 147; j++){
+            obs_area[(i*148) + j] = (255 & obs_area[(i*148) + (j+1)]);
+        }
+        obs_area[(i*148) + 147] = 255;
+    }
 }
