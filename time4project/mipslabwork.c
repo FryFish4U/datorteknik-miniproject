@@ -24,14 +24,14 @@ int gameSpeedUpEvents = 0; // amount of times PR4 has changed its value
 
 int timesObsMoved = 0;
 
-int characterLane = 9;	// used to limit movement for ufo up or down.
+int characterLane = 16;	// used to limit movement for ufo up or down.
 
 int timer4counter = 0; // used to count timer 4 flag events
 
 //areas
 uint8_t map[384];
-uint8_t obs_area[444]; //it is biggger than map. goes from ((0 to 2) *148). spot (((0 to 2) *148) + 10) until(( (0 to 2) *148) + 137) overlaps with map
-uint8_t ufo_area[57]; // goes from (0 to 2) *19) area is placed in (((0 to 2) *128) + 10)
+uint8_t obs_area[414]; //it is biggger than map. goes from ((0 to 2) *148). spot (((0 to 2) *148)) until(( (0 to 2) *148) + 127) overlaps with map
+uint8_t ufo_area[57]; // goes from (0 to 2) *19) area is placed in (((0 to 2) *19) + 10)
 	
 
 volatile int* PortEPointer = (volatile int*) 0xbf886110; // Pointer goes to Port E, register PORTE (LEDs), used for debug purposes
@@ -66,14 +66,27 @@ void setup_ufo_area(void) {
 
     for (i = 0; i < 3; i++){
         for (j = 0; j < 19; j++){
-            if (i == 1){
-                ufo_area[(i*19) + j] = (255 & ufo[j]); //since a 1 on the scrren means black. the 0s in ufo will be visible by bitwise AND
+           if (i == 2){
+                ufo_area[(i*19) + j] = (ufo[j]); //since a 1 on the screen means black. the 0s in ufo will be visible by bitwise AND
             }
             else{
                 ufo_area[(i*19) + j] = 255; // rest of the area is black
-            }
+           }
         }
     }
+}
+
+void setup_map(void){
+	int i = 0;
+    int j = 0;
+
+	for (i = 0; i < 3; i++){
+        for (j = 0; j < 128; j++){
+            map[(i*128) + j] = 255;
+		}
+	}
+	display_image(0, map);
+	return;
 }
 
 void setup_ufo(void){
@@ -82,9 +95,11 @@ void setup_ufo(void){
     int j = 0;
 
     for (i = 0; i < 3; i++){
+		int k = 0;
         for (j = 0; j < 128; j++){
-            if (9 < j < 24){
-                map[(i*128) + j] = (255 & ufo_area[(i*128) + j]);
+            if ((j > 9) && (j < 29)){
+                map[(i*128) + j] = (255 & ufo_area[(i*19) + k]);
+				k++;
             }
             else{
                  map[(i*128) + j] = 255;
@@ -92,6 +107,7 @@ void setup_ufo(void){
         }
     }
     display_image(0,map);
+	return;
 }
 
 /* Lab-specific initialization goes here */
@@ -142,31 +158,36 @@ void labinit( void )
 
 	enable_interrupt(); // enables interuppts via labwork.s
 
+	display_update();
+	setup_map();
 	setup_ufo_area();
-	setup_ufo();
+	setup_ufo();	
 
 	//* legacy code:	
 	// setup_gameMap();
 	// showUfo();
+	int i = 0;		
+	for(i = 0; i < sizeof(obs_area); i++)	// fills obs_area with 1's. when array is initilzed it will be all zeroes untill value is set. that will make the screen white.
+		obs_area[i] = 255;
 
 	return;
 }
 
-int randomInt(char incl0, int toInt){ // generates a random number from 1 (or 0 if incl0 > 0) to toInt  
-	//* https://www.tutorialspoint.com/c_standard_library/c_function_srand.htm
+// int randomInt(char incl0, int toInt){ // generates a random number from 1 (or 0 if incl0 > 0) to toInt  
+// 	//* https://www.tutorialspoint.com/c_standard_library/c_function_srand.htm
 	
-	int internIncl0 = 1;
+// 	int internIncl0 = 1;
 
-	if(!incl0) // if incl0 is 0
-		internIncl0 = 0; // set internIncl0 = 1 
+// 	if(!incl0) // if incl0 is 0
+// 		internIncl0 = 0; // set internIncl0 = 1 
 	
-	unsigned int seed = TMR2; // seed value is equal the current tick value
-	int randomInt = 0;  
+// 	unsigned int seed = TMR2; // seed value is equal the current tick value
+// 	int randomInt = 0;  
 
-	srand(seed); // seeds rand() with TMR2 value
-	randomInt = (rand() % toInt) + incl0; // generates a number between (either 0 or 1 depending on toInt) and toInt
-	return randomInt;
-}
+// 	srand(seed); // seeds rand() with TMR2 value
+// 	randomInt = (rand() % toInt) + incl0; // generates a number between (either 0 or 1 depending on toInt) and toInt
+// 	return randomInt;
+// }
 
 // void showUfo(void){	// funktion för att ladda in ufot i game map.
 // 	int w = 0;
@@ -181,28 +202,28 @@ int randomInt(char incl0, int toInt){ // generates a random number from 1 (or 0 
 
 // Legacy code:
 // void laneRedirect(){
-// 	int pressedBtns = 0; // int which getbtns should write to. Must be defaulted to 0 after use.
+// 	int button = 0; // int which getbtns should write to. Must be defaulted to 0 after use.
 
-// 	pressedBtns = getbtns();
+// 	button = getbtns();
 
-// 		if((pressedBtns & 0b001) && (pressedBtns & 0b100)) // if both move left and right are pressed: default pressedBtns
-// 			pressedBtns = 0; // default pressedBtns
+// 		if((button & 0b001) && (button & 0b100)) // if both move left and right are pressed: default button
+// 			button = 0; // default button
 			
-// 		if((pressedBtns & 0b001) && (characterLane > 0)){ // move up if btn 4 is pressed
+// 		if((button & 0b001) && (characterLane > 0)){ // move up if btn 4 is pressed
 // 			characterLane--; // move up
 // 			move_ufo(-1);
-// 			pressedBtns = 0; // default pressedBtns
+// 			button = 0; // default button
 // 			*PortEPointer = (*PortEPointer & 0xffffff00); // Pointer goes to Port E, register PORTE (LEDs) //! DEBUG
 
 // 		}
 
-// 	    if((pressedBtns & 0b100) && (characterLane < 2)){ // move down if btn 2 is pressed
+// 	    if((button & 0b100) && (characterLane < 2)){ // move down if btn 2 is pressed
 // 			characterLane++; // move down
 // 			move_ufo(1);
-// 			pressedBtns = 0; // default pressedBtns
+// 			button = 0; // default button
 // 			*PortEPointer = (*PortEPointer & 0xffffff00); // Pointer goes to Port E, register PORTE (LEDs) //! DEBUG
 // 		}
-} 
+//} 
 
 void gameSpeed(){ // code should lower the value of PR4(tickrate 4) when TMR2(counter 2) reaches procedural values 
 
@@ -214,49 +235,106 @@ void gameSpeed(){ // code should lower the value of PR4(tickrate 4) when TMR2(co
 		moreThen += 2000; // increases the requirment for timerCount in the 'if' statement
 	}
 }
-void move_ufo (int direction){
+
+void move_ufo (int button){
 // this function will move the ufo in the direction that is indicated by the argument by one pixel at the time for as long as the buttun is held.
 // this will be done by udating a set area of pixels in determained by ufo_area
 
-int pressedBtns = 0; // int which getbtns should write to. Must be defaulted to 0 after use.
-
-	pressedBtns = getbtns();
-
-		if((pressedBtns & 0b001) && (pressedBtns & 0b100)){ // if both move left and right are pressed: default pressedBtns
-			return;
-		}
-    uint32_t temp[19];
-    int i = 0;
-    int j = 0;
-
-    //first we copy the whole row of all three pages into an int array
-    // first the first page the is copied and shifted to the left to make room for the next page.
-    for (i = 0; i < 3; i++){
-        for (j = 0; j < 19; j++){
-            temp[j] = (temp[j] & ufo_area [(i*19) + j]);
-            temp[j] = (temp[j] << 8);
-        }
-    }
-    if((pressedBtns & 0b001) && (characterLane > 0)){ // move up if btn 4 is pressed
-        temp[j] = ((temp[j] >> 1) | 0x800); // for moving up, we switch everything to the right and then add at blank space as the "most sigificant bit"
-        for (i = 2; i >= 0; i--){
-            for (j = 18; j <= 0; j--){ // then we copy it back into the ufo_area but backwards since the least significant bits represent the lowest lane.
-                ufo_area[(i*19) + j] = (temp[j] & ufo_area [(i*19) + j]);
-                temp[j] = (temp[j] >> 8);
-            }
-        }
+	if((button & 0b001) && (button & 0b100)){ // if both move left and right are pressed: default button
+		return;
+	}
+	
+	int tempClane = characterLane;
+	
+    if((button & 0b100) && (tempClane > 0)){ // move up if btn 4 is pressed
 		characterLane --;
-    }								
-    if((pressedBtns & 0b100) && (characterLane < 17)){ // move down if btn 2 is pressed
-											//!  ^check if this number needs to be 18 or 17.
-        temp[j] = ((temp[j] << 1) | 1); // for movin down we shift to the left and add an empty space
-        for (i = 2; i >= 0; i--){
-            for (j = 18; j <= 0; j--){ // same type of write back int ufo_area as above
-                ufo_area[(i*19) + j] = (temp[j] & ufo_area [(i*19) + j]);
-                temp[j] = (temp[j] >> 8);
-            }
-        }
+		int tempClane = characterLane;
+		uint8_t bl_sp_abv;
+		uint8_t bl_sp_blw;
+
+		uint8_t temp0 [19];
+		uint8_t temp1 [19];
+		uint8_t temp2 [19];
+
+		int i = 0;
+		int j = 0;
+		for (i = 0; i < 19; i++){
+			if(tempClane < 8){
+				bl_sp_abv = (254 >> (8 - tempClane));
+				bl_sp_blw = 128;
+				for (j = 0; j < (7 - tempClane); j++){
+					bl_sp_blw = ((bl_sp_blw / 2) + 128);
+				}
+				temp0[i] = ((ufo[i] << (tempClane)) | bl_sp_abv);
+				temp1[i] = ((ufo[i] >> (8 - tempClane)) | bl_sp_blw);
+				temp2[i] = 255;
+			}
+			if((tempClane > 7)){
+				uint8_t bl_sp_abv = (254 >> (16 - tempClane));
+				bl_sp_blw = 128;
+				for (j = 0; j < (15 - tempClane); j++){
+					bl_sp_blw = ((bl_sp_blw / 2) + 128);
+				}
+				temp0[i] = 255;
+				temp1[i] = (ufo[i] << ((tempClane - 8))| bl_sp_abv);
+				temp2[i] = (ufo[i] >> ((16 - tempClane)) | bl_sp_blw);
+			}
+		}		
+		for (i = 0; i< 19; i++){
+			ufo_area[i] = temp0[i];
+			ufo_area[19+i] = temp1[i];
+			ufo_area[38+i] = temp2[i];
+		}
+		return;
+    }
+									
+    if((button & 0b001) && (tempClane < 16)){ // move down if btn 2 is pressed
 		characterLane++;
+		int tempClane = characterLane;
+
+		uint8_t bl_sp_abv;
+		uint8_t bl_sp_blw;
+
+		uint8_t temp0 [19];
+		uint8_t temp1 [19];
+		uint8_t temp2 [19];
+//! försök 4
+		int i = 0;
+		int j = 0;
+		for (i = 0; i < 19; i++){
+			if(tempClane < 8){
+				bl_sp_abv = (254 >> (8 - tempClane));
+				bl_sp_blw = 128;
+				for (j = 0; j < (7 - tempClane); j++){
+					bl_sp_blw = ((bl_sp_blw / 2) + 128);
+				}
+				temp0[i] = ((ufo[i] << (tempClane)) | bl_sp_abv);
+				temp1[i] = ((ufo[i] >> (8 - tempClane)) | bl_sp_blw);
+				temp2[i] = 255;
+			}
+			if(((tempClane > 7) && (tempClane < 16))){
+				uint8_t bl_sp_abv = (254 >> (16 - tempClane));
+				bl_sp_blw = 128;
+				for (j = 0; j < (15-tempClane); j++){
+					bl_sp_blw = ((bl_sp_blw / 2) + 128);
+				}
+				temp0[i] = 255;
+				temp1[i] = (ufo[i] << ((tempClane - 8))| bl_sp_abv);
+				temp2[i] = (ufo[i] >> ((16 - tempClane)) | bl_sp_blw);
+			}
+			if(tempClane == 16){
+				temp0[i] = 255;
+				temp1[i] = 255;
+				temp2[i] = ufo[i];
+			}
+		}	
+			
+		for (i = 0; i< 19; i++){
+			ufo_area[i] = temp0[i];
+			ufo_area[19+i] = temp1[i];
+			ufo_area[38+i] = temp2[i];
+		}
+		return;
     }
 }
 
@@ -446,100 +524,84 @@ void move_obs(void){
 // 		create_obstacle(0);
 // 	}	
 // }
-//! Ska testas också
-// int randomInt(char incl0, int toInt){ // generates a random number from 1 (or 0 if incl0 > 0) to toInt  
-// 	//* https://www.tutorialspoint.com/c_standard_library/c_function_srand.htm
+
+// void explode(int lane){ //! will not use
+
+// 	int j;
+// 	for(j = 0; j < 10; j++){
+// 		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp1[j];
+// 	}
+// 	display_image(0, gameMap);
+//     delayTest = 0;      
+//     while (delayTest < 100000){
+// 		delayTest++;
+// 	}
+// 	for(j = 0; j < 10; j++){
+// 		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & (exp1[j] & exp2[j]);
+// 	}
+// 		display_image(0, gameMap);
 	
-// 	int internIncl0 = 1;
+//         delayTest = 0;     
+//         while (delayTest < 100000){
+// 			delayTest++;
+// 		}
+// 	for(j = 0; j < 10; j++){
+// 		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp2[j];
+// 	}
+// 		display_image(0, gameMap);
 
-// 	if(!incl0) // if incl0 is 0
-// 		internIncl0 = 0; // set internIncl0 = 1 
-	
-// 	unsigned int seed = TMR2; // seed value is equal the current tick value
-// 	int randomInt = 0;  
+//         delayTest = 0;    
+//         while (delayTest < 100000){
+// 			delayTest++;
+// 		}
+// 	for(j = 0; j < 10; j++){
+// 		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & (exp2[j] & exp3[j]);
+// 	}
+// 		display_image(0, gameMap);
 
-// 	srand(seed); // seeds rand() with TMR2 value
-// 	randomInt = (rand() % toInt) + incl0; // generates a number between (either 0 or 1 depending on toInt) and toInt
-// 	return randomInt;
-// }
+//         delayTest = 0;     
+//         while (delayTest < 100000){
+// 			delayTest++;
+// 		}
+// 	for(j = 0; j < 10; j++){	
+// 		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp3[j];
+// 	}
+// 		display_image(0, gameMap);
 
-void explode(int lane){ //! will not use
+//         delayTest = 0;     
+//         while (delayTest < 100000){
+// 			delayTest++;
+// 		}
+// 	for(j = 0; j < 10; j++){
+// 		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & (exp3[j] & exp4[j]);
+// 	}
+// 		display_image(0, gameMap);
 
-	int j;
-	for(j = 0; j < 10; j++){
-		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp1[j];
-	}
-	display_image(0, gameMap);
-    delayTest = 0;      
-    while (delayTest < 100000){
-		delayTest++;
-	}
-	for(j = 0; j < 10; j++){
-		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & (exp1[j] & exp2[j]);
-	}
-		display_image(0, gameMap);
-	
-        delayTest = 0;     
-        while (delayTest < 100000){
-			delayTest++;
-		}
-	for(j = 0; j < 10; j++){
-		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp2[j];
-	}
-		display_image(0, gameMap);
+//         delayTest = 0;      
+//         while (delayTest < 100000){
+// 			delayTest++;
+// 		}
+// 	for(j = 0; j < 10; j++){
+// 		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp4[j];
+// 	}
+// 		display_image(0, gameMap);
 
-        delayTest = 0;    
-        while (delayTest < 100000){
-			delayTest++;
-		}
-	for(j = 0; j < 10; j++){
-		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & (exp2[j] & exp3[j]);
-	}
-		display_image(0, gameMap);
+//         delayTest = 0;     
+//         while (delayTest < 100000){
+// 			delayTest++;
+// 		}
+// 	for(j = 0; j < 10; j++){
+// 		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255);
+// 	}
 
-        delayTest = 0;     
-        while (delayTest < 100000){
-			delayTest++;
-		}
-	for(j = 0; j < 10; j++){	
-		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp3[j];
-	}
-		display_image(0, gameMap);
+//  		display_image(0, gameMap);
 
-        delayTest = 0;     
-        while (delayTest < 100000){
-			delayTest++;
-		}
-	for(j = 0; j < 10; j++){
-		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & (exp3[j] & exp4[j]);
-	}
-		display_image(0, gameMap);
-
-        delayTest = 0;      
-        while (delayTest < 100000){
-			delayTest++;
-		}
-	for(j = 0; j < 10; j++){
-		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp4[j];
-	}
-		display_image(0, gameMap);
-
-        delayTest = 0;     
-        while (delayTest < 100000){
-			delayTest++;
-		}
-	for(j = 0; j < 10; j++){
-		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255);
-	}
-
- 		display_image(0, gameMap);
-
-        delayTest = 0;  
-        while (delayTest < 100000){
-			delayTest++;
-		}
+//         delayTest = 0;  
+//         while (delayTest < 100000){
+// 			delayTest++;
+// 		}
    
-}
+// }
 
 
 //? Templates for timer interrupts:
@@ -562,14 +624,20 @@ void map_update(void){
 //this is done once with every flag event from timer 2 (if possible, 30 times per second?)
     int i = 0;
     int j = 0;
+	
 
     for (i = 0; i < 3; i++){
+		int k = 0;
         for (j = 0; j < 128; j++){
-            if (9 < j < 24){ //if j is in this intervall we are in the area of the ufo and does an bitwise AND between ufo and obs.
-                map[(i*128) + j] = (255 & (obs_area[(i*148) + (j+10)] & ufo_area[(i*128) + j]));
+            if ((j > 9) && (j < 29)){ //if j is in this intervall we are in the area of the ufo and does an bitwise AND between ufo and obs.
+               // map[(i*128) + j] = (255 & (obs_area[(i*138) + j] & ufo_area[(i*19) + k])); // this code might override buttom page.
+				map[(i*128) + j] = (255 & ufo_area[(i*19) + k]);
+				//map[(i*128) + j] = (255 & obs_area[(i*138) + j]);
+				k++;
             }
             else{ // here we are outside od the ufo range and as such do not need the ufo_area
-                map[(i*128) + j] = (255 & (obs_area[(i*148) + (j+10)]));
+                //map[(i*128) + j] = (255 & (obs_area[(i*138) + j]));
+				map[(i*128) + j] = 255;
             }
         }
     }
@@ -579,11 +647,9 @@ void map_update(void){
 /* This function is called repetitively from the main program */
 void labwork( void )
 {
+	int buttons = getbtns();
   	/* start of test code */
-	
-	if (getbtns() & 0b010){
-		spawn_obstacle(0b11);
-	}
+
 
 	int aaa = 1;
 	while(aaa){
@@ -592,11 +658,18 @@ void labwork( void )
     		*PortEPointer = (*PortEPointer & 0xffffff00); // lets all binary 1s be unchanged except the ones in the last 2 byte //! DEBUG
   		else					//! DEBUG
 			*PortEPointer += 1; //! DEBUG
-			move_obs();
+
+		if(buttons)
+			move_ufo(buttons);
+
+		if(ifs())
+
+		map_update();
 
 		IFSCLR(0) = 0x100;
 		aaa = 0;
-		}	
+		}
+		
 	}
 
 	/* end of test code */
@@ -610,8 +683,8 @@ void labwork( void )
 	}
 	*/
 
-	gameSpeed();
-	laneRedirect();
+	// gameSpeed();
+	// laneRedirect();
 
 	// if(btnOut | 0b0010)	// if the down button is pressed
 	// 	move_ufo(1);	// move the UFO down
