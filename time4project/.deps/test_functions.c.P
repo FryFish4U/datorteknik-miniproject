@@ -1,0 +1,2 @@
+test_functions.c.o: test_functions.c
+test_functions.c :
