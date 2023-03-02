@@ -79,7 +79,8 @@ void user_isr( void )
 				move_ufo(buttons);
 			
 			map_update();
-
+			
+			score = (100*timesObsMoved) + (100*timesObsMoved*(gameSpeedUpEvents/2));
 			timer2counter++;
 			IFSCLR(0) = 0x100;
 		}
