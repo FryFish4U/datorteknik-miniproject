@@ -505,9 +505,9 @@ void map_update(void){ //* by David
 	for(i = 0; i < 3; i++){
 		uint8_t crashTest = 0;
 		for(j = 0; j < 19; j++){
-			crashTest = (ufo_area[(i*19)+j] | obs_area[(i*138) + (j+10)]);
-			if((crashTest != 255)){
-				scene = 2;
+			crashTest = (ufo_area[(i*19)+j] | obs_area[(i*138) + (j+10)]); 	// both ufo and obstacle is represented by zeros.
+			if((crashTest != 255)){											// a bitwise or will generate 255 unless there is an overlap
+				scene = 2;													// eg. crash
 			}
 		}
 	}
