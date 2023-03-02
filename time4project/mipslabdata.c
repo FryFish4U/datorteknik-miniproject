@@ -171,8 +171,8 @@ const uint8_t const ufo[] = {
 
 // obstacle sprite
 const uint8_t const spaceRock[] = {
-    243,    166,    15,     140,    39,     117,    0,      33,
-    55,     127,
+    239,    211,    199,     231,    243,     211,    247,      195,
+    231,     215,
  };
 
 // explosion sprites for 4 frame animation
