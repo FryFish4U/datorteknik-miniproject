@@ -83,7 +83,7 @@ void move_ufo (int direction){
             temp[j] = (temp[j] << 8);
         }
     }
-    if(/*syntax for button for moving up is pressed*/){
+    if( !1 /*syntax for button for moving up is pressed*/){
         temp[j] = ((temp[j] >> 1) | 0x800); // for moving up, we switch everything to the right and then add at blank space as the "most sigificant bit"
         for (i = 2; i >= 0; i--){
             for (j = 18; j <= 0; j--){ // then we copy it back into the ufo_area but backwards since the least significant bits represent the lowest lane.
@@ -92,7 +92,7 @@ void move_ufo (int direction){
             }
         }
     }
-    if(/*syntax for button for moving down is pressed*/){
+    if( !1 /*syntax for button for moving down is pressed*/){
         temp[j] = ((temp[j] << 1) | 1); // for movin down we shift to the left and add an empty space
         for (i = 2; i >= 0; i--){
             for (j = 18; j <= 0; j--){ // same type of write back int ufo_area as above

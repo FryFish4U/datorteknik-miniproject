@@ -26,9 +26,12 @@ int prime = 1234567;
 int moreThen = 2000;
 
 int gameSpeedUpEvents = 0; // amount of times PR4 has changed its value
-int timesObsMoved = 0;
+int timesObsMoved = 0; // integer that keeps count of the amount of times the obstacles has been moved
+int score = 0; // integer of the players score
 
-int characterLane = 1;
+int characterLane = 1; // integer that goes from 0 to 2, where 0 is the top lane and 2 is the bottom
+
+int scene = 0; // should be used to tell labwork what 'scene' to display (i.e. if it should display game over or the main game, etc.)
 
 volatile uint32_t delayTest; //! to be discarded
 
@@ -65,7 +68,7 @@ void labinit( void )
 	volatile int* PortEPointer = (volatile int*) 0xbf886100; // Pointer points to Port E, register TRISE
 	TRISDSET = 0x00000fe0;
 
-	/* init timer 2: */
+	/* init timer 2: */ //* Alvins
 	T2CON = 0x0; // disables timer before config - necessary
 
 	T2CONSET = 0x70; // should be 1:256 due to clock being 8 MHz and timer not having an implemented 1:128 prescaler
@@ -85,7 +88,7 @@ void labinit( void )
   	T2CONSET = 0x8000; // starts timer - adviced to start at end to minimalize problems
 	/* end of timer 2 init */
   
-	/* init timer 4: */
+	/* init timer 4: */ //* Alvins
 	T4CON = 0x0; // disables timer before config - necessary
 
 	T4CONSET = 0x70;    // should be 1:256 due to clock being 8 MHz and timer not having an implemented 1:128 prescaler
@@ -93,7 +96,7 @@ void labinit( void )
 	PR4 = 0x7a12;       // 16 bit register - since timer only uses 4 bytes
 						// - lower number means slower clock (int value defines tick rate)
 
-	IPC(4) = 0x1f;       // priority 2 (0b 0100)
+	IPC(4) = 0x1f;       // priority 7 sub prio 3 - aka highest priority
 
 	IECSET(0) = 0x10000;  // enable timer 4 flag
 	IFSCLR(0) = 0x10000;	// clear timer 4 flag
@@ -101,11 +104,11 @@ void labinit( void )
 
 	//IPCSET(4) = 0x8e000000; // prio 7 subprio 2 
 
-	T4CONSET = 0x10000; // starts timer - adviced to start at end to minimalize problems
+	T4CONSET = 0x8000; // starts timer - adviced to start at end to minimalize problems
 	/* end of timer 4 init */
 
 
-	enable_interrupt(); // enables interuppts via labwork.s
+	enable_interrupt(); // enables interuppts via labwork.S //* Alvins
 
 	setup_gameMap();
 	showUfo();
@@ -113,7 +116,7 @@ void labinit( void )
 	return;
 }
 
-int randomInt(char incl0, int toInt){ // generates a random number from 1 (or 0 if incl0 > 0) to toInt  
+int randomInt(char incl0, int toInt){ // generates a random number from 1 (or 0 if incl0 > 0) to toInt //* Alvins 
 	//* https://www.tutorialspoint.com/c_standard_library/c_function_srand.htm
 	
 	int internIncl0 = 1;
@@ -140,7 +143,7 @@ void showUfo(void){	// funktion för att ladda in ufot i game map.
     return;
 }
 
-void laneRedirect(){
+void laneRedirect(){ //* Alvins
 	int pressedBtns = 0; // int which getbtns should write to. Must be defaulted to 0 after use.
 
 	pressedBtns = getbtns();
@@ -164,7 +167,7 @@ void laneRedirect(){
 		}
 } 
 
-void gameSpeed(){ // code should lower the value of PR4(tickrate 4) when TMR2(counter 2) reaches procedural values 
+void gameSpeed(){ // code should lower the value of PR4(tickrate 4) when TMR2(counter 2) reaches procedural values //* Alvins
 
 	int timerCount = TMR2; // saves the value of TMR2(counter 2) in an int for stability, in case it changes value in the middle of function
 
@@ -312,7 +315,7 @@ void move_obs(void){	//! fucked up from here
 	// //}
 }
 
-void spawn_obstacle(int bLane){ // bLane checks the 3 LSB and calls a function to create obstacles 
+void spawn_obstacle(int bLane){ // bLane checks the 3 LSB and calls a function to create obstacles //* Alvins
 								// in the lanes corresponded by the bits. 
 	
 	int l = bLane & 0b111;
@@ -330,22 +333,7 @@ void spawn_obstacle(int bLane){ // bLane checks the 3 LSB and calls a function t
 		create_obstacle(0);
 	}	
 }
-//! Ska testas också
-// int randomInt(char incl0, int toInt){ // generates a random number from 1 (or 0 if incl0 > 0) to toInt  
-// 	//* https://www.tutorialspoint.com/c_standard_library/c_function_srand.htm
-	
-// 	int internIncl0 = 1;
 
-// 	if(!incl0) // if incl0 is 0
-// 		internIncl0 = 0; // set internIncl0 = 1 
-	
-// 	unsigned int seed = TMR2; // seed value is equal the current tick value
-// 	int randomInt = 0;  
-
-// 	srand(seed); // seeds rand() with TMR2 value
-// 	randomInt = (rand() % toInt) + incl0; // generates a number between (either 0 or 1 depending on toInt) and toInt
-// 	return randomInt;
-// }
 
 void explode(int lane){ //! will not use
 
@@ -425,7 +413,6 @@ void explode(int lane){ //! will not use
    
 }
 
-
 //? Templates for timer interrupts:
 /* delay with timer 2:
 	if(IFS(0) & 0x100){  // if int.ext.2 flag is 1 
@@ -452,7 +439,7 @@ void labwork( void )
 
 	int aaa = 1;
 	while(aaa){
-	if(IFS(0) & 0x100){  // if int.ext.2 flag is 1 
+	if(IFS(0) & 0x10000){  // if int.ext.2 flag is 1 
 		if((*PortEPointer & 0xffffff00) + 255 == *PortEPointer) //! DEBUG
     		*PortEPointer = (*PortEPointer & 0xffffff00); // lets all binary 1s be unchanged except the ones in the last 2 byte //! DEBUG
   		else					//! DEBUG
@@ -467,6 +454,37 @@ void labwork( void )
 	/* end of test code */
 
 
+	/* start of scenes */
+
+	if(scene == -1){
+		labinit(); 	// should reset the code back to normal, 
+					// if not then there could be a value that is kept outside of mipslabwork.c thats causimg problems
+
+		scene = 0; // move to the main menu scene the next cycle 
+	}
+	else
+
+	if(scene == 0){
+		// should display main menu
+		// if buttons are pressed set scene = 1...
+		scene = 1; // move to the game scene the next cycle 
+	}
+	else 
+	
+	if(scene == 1){
+		// the main game should run in here
+		// if game over occurs set scene = 2
+	}
+	else 
+	
+	if(scene == 2){
+		// should display game over screen
+		// should also display the score 
+		// when button is pressed: scene = -1 to run init all over again which should reset the game back to norm
+	}
+
+	/* end of scenes */
+
 	//* uses rng to spawn obstacles:
 	/* 
 	if(timesObsMoved > 30){ // if obstacles has moved 25 pixels //todo: might be able to scale this to difficulity
@@ -477,6 +495,8 @@ void labwork( void )
 
 	gameSpeed();
 	laneRedirect();
+	score = (100*timesObsMoved) + (100*timesObsMoved*(gameSpeedUpEvents/2));
+
 
 	// if(btnOut | 0b0010)	// if the down button is pressed
 	// 	move_ufo(1);	// move the UFO down
