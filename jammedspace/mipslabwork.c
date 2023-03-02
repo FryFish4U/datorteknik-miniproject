@@ -81,6 +81,10 @@ void user_isr( void ) //! INTENTIONAL: CLEARS ALL FLAGS 'IN CASE OF EMERGENCY'
 			map_update();
 			
 			score = (100*timesObsMoved) + (100*timesObsMoved*(gameSpeedUpEvents/2));
+
+			display_string(3, "Score: " + );
+			display_update();
+
 			timer2counter++;
 			IFSCLR(0) = 0x100;
 		}
@@ -288,10 +292,11 @@ void move_ufo (int button){
 		return;
 	}
 	
-	int tempClane = characterLane;
+	int tempClane = characterLane; 
 	
     if((button & 0b100) && (tempClane > 0)){ // move up if btn 4 is pressed
 		characterLane --;
+
 		tempClane = characterLane;
 		uint8_t bl_sp_abv;
 		uint8_t bl_sp_blw;
@@ -334,6 +339,7 @@ void move_ufo (int button){
 									
     if((button & 0b001) && (tempClane < 16)){ // move down if btn 2 is pressed
 		characterLane++;
+		
 		int tempClane = characterLane;
 
 		uint8_t bl_sp_abv;
