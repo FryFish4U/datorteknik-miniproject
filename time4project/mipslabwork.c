@@ -11,6 +11,8 @@
 
    For copyright and licensing, see file COPYING */
 
+void* stdout; 		  // need to compile with stdlib (Alvin)
+#include <stdlib.h>	  // need for rand and srand	 (Alvin)
 #include <stdint.h>   /* Declarations of uint_32 and the like */
 #include <pic32mx.h>  /* Declarations of system-specific addresses etc */
 #include "mipslab.h"  /* Declatations for these labs */
@@ -43,6 +45,22 @@ uint8_t ufo_area[57]; // goes from (0 to 2) *19) area is placed in (((0 to 2) *1
 
 volatile int* PortEPointer = (volatile int*) 0xbf886110; // Pointer goes to Port E, register PORTE (LEDs), used for debug purposes
 
+int makeRandomInt(char incl0, int toInt){ // generates a random number from 1 (or 0 if incl0 > 0) to toInt  
+	//* https://www.tutorialspoint.com/c_standard_library/c_function_srand.htm
+	
+	int internIncl0 = 1;
+
+	if(!incl0) // if incl0 is 0
+		internIncl0 = 0; // set internIncl0 = 1 
+	
+	unsigned int seed = TMR2; // seed value is equal the current tick value
+	int returnRandomInt = 0;  
+
+	srand(seed); // seeds rand() with TMR2 value
+	returnRandomInt = (rand() % toInt) + incl0; // generates a number between (either 0 or 1 depending on toInt) and toInt
+	return returnRandomInt;
+}
+
 
 /* Interrupt Service Routine */ 
 void user_isr( void )
@@ -71,9 +89,9 @@ void user_isr( void )
 				*PortEPointer = (*PortEPointer & 0xffffff00); // lets all binary 1s be unchanged except the ones in the last 2 byte //! DEBUG
 			else					//! DEBUG
 				*PortEPointer += 4; //! DEBUG
-
-			importedSRand(timer4counter);
-			move_obs(importedRand());
+			
+			int spawnInt = makeRandomInt(0,6);
+			move_obs(spawnInt);
 
 			timer4counter++;
 			IFSCLR(0) = 0x10000;
@@ -219,22 +237,6 @@ void labinit( void )
 	return;
 }
 
-// int randomInt(char incl0, int toInt){ // generates a random number from 1 (or 0 if incl0 > 0) to toInt  
-// 	//* https://www.tutorialspoint.com/c_standard_library/c_function_srand.htm
-	
-// 	int internIncl0 = 1;
-
-// 	if(!incl0) // if incl0 is 0
-// 		internIncl0 = 0; // set internIncl0 = 1 
-	
-// 	unsigned int seed = TMR2; // seed value is equal the current tick value
-// 	int randomInt = 0;  
-
-// 	srand(seed); // seeds rand() with TMR2 value
-// 	randomInt = (rand() % toInt) + incl0; // generates a number between (either 0 or 1 depending on toInt) and toInt
-// 	return randomInt;
-// }
-
 // void showUfo(void){	// funktion för att ladda in ufot i game map.
 // 	int w = 0;
 // 	for(w = 0 ; w < 19 ; w++){
@@ -289,7 +291,7 @@ void move_ufo (int button){     // setting up the ufo_area on the map. should on
 		return;
 	}
 	
-	int tempClane = 0;
+	int tempClane = characterLane;
 	
     if((button & 0b100) && (tempClane > 0)){ // move up if btn 4 is pressed
 		characterLane --;
@@ -516,7 +518,7 @@ void move_obs(int spawnObs) { //* by david
 	}
 */
 
-void map_update(void){ //* by David
+void map_update(){ //* by David
 //what is meant to be done here is to combine all the new information on the top three pages of the display and show it.
 //this is done once with every flag event from timer 2 (if possible, 30 times per second?)
     int i = 0;
@@ -557,7 +559,6 @@ void map_update(void){ //* by David
 void labwork( void )
 {
 	int buttons = getbtns();
-	importedSRand(timer4counter);
 
   	/* start of test code */
 
