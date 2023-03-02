@@ -28,12 +28,13 @@ int moreThen = 200; // the increment value for gameSpeed //! changes in here sho
 int gameSpeedUpEvents = 0; // amount of times PR4 has changed its value
 
 int timesObsMoved = 0; // integer that keeps count of the amount of times the obstacles has been moved
-int score = 0; // double of the players score
+int score = 0; // double of the players score //! should be 0
 
-int scene = 0; // should be used to tell labwork what 'scene' to display (i.e. if it should display game over or the main game, etc.)
 int characterLane = 0;	// used to limit movement for ufo up or down.
 
 int obsCounter = 1;
+
+int scene = 1; // used to switch off game logic when a game over event occurs 
 
 /* end of global variables */
 
@@ -43,8 +44,8 @@ uint8_t map[384];
 uint8_t obs_area[414]; //it is biggger than map. goes from ((0 to 2) *138). spot (((0 to 2) *138)) until(( (0 to 2) *138) + 127) overlaps with map
 uint8_t ufo_area[57]; // goes from (0 to 2) *19) area is placed in (((0 to 2) *19) + 10)
 	
-
 volatile int* PortEPointer = (volatile int*) 0xbf886110; // Pointer goes to Port E, register PORTE (LEDs), used for debug purposes
+
 
 int makeRandomInt(char incl0, int toInt){ // generates a random number from 1 (or 0 if incl0 > 0) to toInt  
 	//* https://www.tutorialspoint.com/c_standard_library/c_function_srand.htm
@@ -64,20 +65,20 @@ int makeRandomInt(char incl0, int toInt){ // generates a random number from 1 (o
 
 
 /* Interrupt Service Routine */ 
-void user_isr( void ) //! INTENTIONAL: CLEARS ALL FLAGS 'IN CASE OF EMERGENCY'
+void user_isr( void )
 {
-	int buttons = getbtns();
-
 	if(scene == 1){
+		int buttons = getbtns();
+
 		if(IFS(0) & 0x100){  // if int.ext.2 flag is 1 
 			if(buttons)
 				move_ufo(buttons);
 			
 			map_update();
 			
-			score = (100*timesObsMoved) + (100*timesObsMoved*(gameSpeedUpEvents/2));
 			timer2counter++;
 			IFSCLR(0) = 0x100;
+			score = (100*timesObsMoved) + (100*timesObsMoved*(gameSpeedUpEvents/2)); // equation for score calculation
 		}
 
 
@@ -90,6 +91,7 @@ void user_isr( void ) //! INTENTIONAL: CLEARS ALL FLAGS 'IN CASE OF EMERGENCY'
 		}
 	}
 }
+
 
 void setup_ufo_area(void) {
     // setting up the area first time. called once in init before setting up the ufo on the map (setup_ufo();)
@@ -108,6 +110,7 @@ void setup_ufo_area(void) {
     }
 }
 
+
 void setup_map(void){
 	int i = 0;
     int j = 0;
@@ -120,6 +123,7 @@ void setup_map(void){
 	display_image(0, map);
 	return;
 }
+
 
 void setup_ufo(void){
     // setting up the ufo_area on the map. should only be called once. goes in labinit
@@ -148,6 +152,7 @@ void setup_obs_area (void){
 	}
 }
 
+
 /* Lab-specific initialization goes here */
 void labinit( void )
 {
@@ -163,9 +168,6 @@ void labinit( void )
 
 	IPC(2) = 0x1f; // priority 7 sub prio 3 - aka highest priority
 	IECSET(0) = 0x100; // enable timer 2 flag
-
-	//IPCSET(2) = 0x8e000000; // prio 7 subprio 2 
-	//IECSET(0) = 0x800; // enable ext.int.2
 
 	IFSCLR(0) = 0x100; // clear timer interupt
 
@@ -186,9 +188,6 @@ void labinit( void )
 
 	IECSET(0) = 0x10000;  // enable timer 4 flag
 	IFSCLR(0) = 0x10000;	// clear timer 4 flag
-	//IECSET(0) = 0x8000; // enable ext.int.4
-
-	//IPCSET(4) = 0x8e000000; // prio 7 subprio 2 
 
 	T4CONSET = 0x8000; // starts timer - adviced to start at end to minimalize problems
 	/* end of timer 4 init */
@@ -213,7 +212,6 @@ void labinit( void )
 	timesObsMoved = 0;
 	score = 0; 
 
-	scene = 0; 
 	characterLane = 0;
 
 	obsCounter = 1;
@@ -227,41 +225,6 @@ void labinit( void )
 	return;
 }
 
-// void showUfo(void){	// funktion för att ladda in ufot i game map.
-// 	int w = 0;
-// 	for(w = 0 ; w < 19 ; w++){
-// 		gameMap[(characterLane*128) + (10 + w)] = (gameMap[(characterLane*128) + (10 + w)] & ufo[w]);
-// 	} 
-	
-// 	//display_update();
-// 	display_image(0, gameMap);
-//     return;
-// }
-
-// Legacy code:
-// void laneRedirect(){
-// 	int button = 0; // int which getbtns should write to. Must be defaulted to 0 after use.
-
-// 	button = getbtns();
-
-// 		if((button & 0b001) && (button & 0b100)) // if both move left and right are pressed: default button
-// 			button = 0; // default button
-			
-// 		if((button & 0b001) && (characterLane > 0)){ // move up if btn 4 is pressed
-// 			characterLane--; // move up
-// 			move_ufo(-1);
-// 			button = 0; // default button
-// 			*PortEPointer = (*PortEPointer & 0xffffff00); // Pointer goes to Port E, register PORTE (LEDs) //! DEBUG
-
-// 		}
-
-// 	    if((button & 0b100) && (characterLane < 2)){ // move down if btn 2 is pressed
-// 			characterLane++; // move down
-// 			move_ufo(1);
-// 			button = 0; // default button
-// 			*PortEPointer = (*PortEPointer & 0xffffff00); // Pointer goes to Port E, register PORTE (LEDs) //! DEBUG
-// 		}
-//} 
 
 void gameSpeed(){ // code should lower the value of PR4(tickrate 4) when TMR2(counter 2) reaches procedural values //* Alvins
 	
@@ -271,6 +234,7 @@ void gameSpeed(){ // code should lower the value of PR4(tickrate 4) when TMR2(co
 		moreThen += 200; // increases the requirment for timerCount in the 'if' statement
 	}
 }
+
 
 void move_ufo (int button){
 // this function will move the ufo in the direction that is indicated by the argument by one pixel at the time for as long as the buttun is held.
@@ -336,19 +300,18 @@ void move_ufo (int button){
 	return;
 }
 
+
 void move_obs(int spawnObs) { 
 //This function will upgrade the obs area from row to move all current obs one row to the left
 // should be executed once at every flag event of timer 4 (at first maybe 10time per second with increasing speed if possible.)
 // also spawns obstacles
     int i = 0;
     int j = 0;
-   
 
    // spawn part
    // if 70 flags, then spawn obstacle:
    // there is 6 different spawnObs. an obstacle spwans in either page 0, 1, 2, 0+1, 0+2 or 1+2;
     if (timer4counter == 70){
-
 		if(spawnObs == 1){
 			obsCounter+= 2;
 			for (i = 0; i < 1; i++){
@@ -416,13 +379,11 @@ void move_obs(int spawnObs) {
 				}
 			}
 		}                                                                                   
-        // for (i = 0; i < 3; i++){
-        //     int k = 0;
-        //     for (j = 136; j < 147; j++){
-        //         obs_area[j + (i*147)] = (255 & spaceRock[k]); //! right now, if I am correct, thsi will spawn one obstacle in each lane.
-        //         k++;                                          //! conditions must be set so that this will only happen in maximum 2 lanes at a time
-        //     }                                                 //! there should be 6 different situations. lane 1,2,3,1+2,1+3 or 2+3.
-        // }                                                     //! can this be done wit some kind of loop or do we need 6 different "if" statements?
+		//! right now, if I am correct, thsi will spawn one obstacle in each lane.
+        //! conditions must be set so that this will only happen in maximum 2 lanes at a time
+		//! there should be 6 different situations. lane 1,2,3,1+2,1+3 or 2+3.
+		//! can this be done wit some kind of loop or do we need 6 different "if" statements?
+
         timer4counter = 0;
     }
 
@@ -434,41 +395,10 @@ void move_obs(int spawnObs) {
         }
         obs_area[(i*138) + 137] = 255;
     }
+
+	timesObsMoved++;
 }
 
-// void spawn_obstacle(int bLane){ // bLane checks the 3 LSB and calls a function to create obstacles 
-// 								// in the lanes corresponded by the bits. 
-	
-// 	int l = bLane & 0b111;
-
-// 	if(l == 0b111)	// if all three lanes should get an obstacle
-// 		return;		// return, due to them being impossible for the player to avoid 
-
-// 	if(l & 0b100){			// if the 3rd bit is 1, create obstacle in the lowest lane
-// 		create_obstacle(2);
-// 	}	
-// 	if(l & 0b010){			// if the 2nd bit is 1, create obstacle in the middle lane
-// 		create_obstacle(1);	
-// 	}
-// 	if(l & 0b001){			// if the 1st bit is 1, create obstacle in the top lane
-// 		create_obstacle(0);
-// 	}	
-// }
-
-//? Templates for timer interrupts:
-/* delay with timer 2:
-	if(IFS(0) & 0x100){  // if int.ext.2 flag is 1 
-		//*[CODE THAT SHOULD BE EXECUTED]
-		IFSCLR(0) = 0x100;
-	}
-*/
-
-/* delay with timer 4:
-	if(IFS(0) & 0x10000){  // if int.ext.2 flag is 1 
-		//*[CODE THAT SHOULD BE EXECUTED]
-		IFSCLR(0) = 0x10000;
-	}
-*/
 
 void map_update(){ //* by David
 //what is meant to be done here is to combine all the new information on the top three pages of the display and show it.
@@ -491,19 +421,25 @@ void map_update(){ //* by David
 		}
 	}
 
-	/* written by alvin, diplays score */
-		int tempScore = score;
+	/* written by Alvin, diplays score */
+		int tempScore = score; // sets current score as in a temporary int for safe manipulation
 		
-		char scoreLabel[32] = "Score: ";
+		char scoreLabel[17] = {'0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'};
+								// declares a char array that is filled with 0
+		char scoreText[8] = "Score: "; // declares a char array with the characters "Score: "
 		
-		for(i = sizeof("Score: ") ; i < 32 ; i++){
-			scoreLabel[i] = (tempScore % 10) + '0';
-			tempScore = tempScore / 10;
+		for(i = 0 ; scoreText[i] != '\0' ; i++) // loops until scoreText[i] is empty
+			scoreLabel[i] = scoreText[i]; // sets the character in scoreText to scoreLabel in the same position
+
+		// then 
+		for(i  = 17; i > 7 ; i--){ // loops until it reaches the "Score: " chars
+			scoreLabel[i] = ((tempScore % 10) + '0'); // takes the first decimal in the tempScore int
+			tempScore = tempScore / 10; // moves the decimals to the right by division
 		}
 
 
-		display_string(3, scoreLabel);
-		display_update();
+		display_string(3, scoreLabel); // readies char array for display at the bottom part of the screen
+		display_update(); // displays score
 	/* end of score display */
 
 // spawn in new obs area over the map
@@ -523,45 +459,10 @@ void map_update(){ //* by David
     display_image(0,map);
 }
 
+
 /* This function is called repetitively from the main program */
 void labwork( void )
 {
 	int buttons = getbtns();
-
-  	/* start of test code */
-
-
-
-	/* end of test code */
-
-
-	/* start of scenes */
-
-	if(scene == -1){
-		labinit(); 	// should reset the code back to normal, 
-					// if not then there could be a value that is kept outside of mipslabwork.c thats causimg problems
-
-		scene = 0; // move to the main menu scene the next cycle 
-	}
-	else
-
-	if(scene == 0){
-		// should display main menu
-		// if buttons are pressed set scene = 1...
-		scene = 1; // move to the game scene the next cycle 
-	}
-	else 
-	
-	if(scene == 1){
-		// the main game should run in here
-		// if game over occurs set scene = 2
-		gameSpeed();
-	}
-	else 
-	
-	if(scene == 2){
-		// should display game over screen
-		// should also display the score 
-		// when button is pressed: scene = -1 to run init all over again which should reset the game back to norm
-	}
+	gameSpeed();
 }
