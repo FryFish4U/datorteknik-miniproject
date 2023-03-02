@@ -262,7 +262,7 @@ void move_ufo (int button){
 	
     if((button & 0b100) && (tempClane > 0)){ // move up if btn 4 is pressed
 		characterLane --;
-		int tempClane = characterLane;
+		tempClane = characterLane;
 		uint8_t bl_sp_abv;
 		uint8_t bl_sp_blw;
 
@@ -362,13 +362,14 @@ void move_obs(int version) {
 
    // spawn part
    // if 24 flags, then spawn obstacle:
+   // there is 6 different versions. an obstacle spwans in either page 0, 1, 2, 0+1, 0+2 or 1+2;
     if (timer4counter == 70){
 
 		if(version == 1){
-			obsCounter++;
+			obsCounter+= 2;
 			for (i = 0; i < 1; i++){
            		int k = 0;
-				for (j = 126; j < 137; j++){
+				for (j = 126; j < 136; j++){
 					obs_area[j + (i*137)] = (spaceRock[k]); 
 					k++;                                      
 				}
@@ -376,10 +377,10 @@ void move_obs(int version) {
 		}
 
 		if(version == 2){
-			obsCounter ++;
+			obsCounter += 4;
 			for (i = 1; i < 2; i++){
            		int k = 0;
-				for (j = 126; j < 137; j++){
+				for (j = 126; j < 136; j++){
 					obs_area[j + (i*137)] = (255 & spaceRock[k]); 
 					k++;                                      
 				}
@@ -388,10 +389,10 @@ void move_obs(int version) {
 		}
 
 		if(version == 3){
-			obsCounter = 1;
+			obsCounter += 2;
 			for (i = 2; i < 3; i++){
            		int k = 0;
-				for (j = 126; j < 137; j++){
+				for (j = 126; j < 136; j++){
 					obs_area[j + (i*137)] = (255 & spaceRock[k]); 
 					k++; 
 				}
@@ -399,10 +400,10 @@ void move_obs(int version) {
 		}   
 
 		if(version == 4){
-			obsCounter = 1;
-			for (i = 2; i < 3; i++){
+			obsCounter += (-3);
+			for (i = 0; i < 2; i++){
            		int k = 0;
-				for (j = 126; j < 137; j++){
+				for (j = 126; j < 136; j++){
 					obs_area[j + (i*137)] = (255 & spaceRock[k]); 
 					k++; 
 				}
@@ -410,10 +411,10 @@ void move_obs(int version) {
 		}      
 
 		if(version == 5){
-			obsCounter = 1;
-			for (i = 2; i < 3; i++){
+			obsCounter += (-3);
+			for (i = 1; i < 3; i++){
            		int k = 0;
-				for (j = 126; j < 137; j++){
+				for (j = 126; j < 136; j++){
 					obs_area[j + (i*137)] = (255 & spaceRock[k]); 
 					k++; 
 				}
@@ -421,15 +422,16 @@ void move_obs(int version) {
 		}                             
 
 		if(version == 6){
-			obsCounter = 1;
-			for (i = 2; i < 3; i++){
+			obsCounter += (-2);
+			for (i = 0; i < 3; i++){
            		int k = 0;
-				for (j = 126; j < 137; j++){
+				if((i == 0) | (i == 2))
+				for (j = 126; j < 136; j++){
 					obs_area[j + (i*137)] = (255 & spaceRock[k]); 
 					k++; 
 				}
 			}
-		}                                                                                    
+		}                                                                                   
         // for (i = 0; i < 3; i++){
         //     int k = 0;
         //     for (j = 136; j < 147; j++){
