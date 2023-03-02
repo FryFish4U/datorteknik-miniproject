@@ -255,7 +255,7 @@ void move_ufo (int button){
 	
     if((button & 0b100) && (tempClane > 0)){ // move up if btn 4 is pressed
 		characterLane --;
-		int tempClane = characterLane;
+		tempClane = characterLane;
 		uint8_t bl_sp_abv;
 		uint8_t bl_sp_blw;
 
@@ -355,6 +355,7 @@ void move_obs(int version) {
 
    // spawn part
    // if 24 flags, then spawn obstacle:
+   // there is 6 different versions. an obstacle spwans in either page 0, 1, 2, 0+1, 0+2 or 1+2;
     if (timer4counter == 70){
 
 		if(version == 1){
