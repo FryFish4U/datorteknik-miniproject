@@ -28,7 +28,7 @@ int moreThen = 200; // the increment value for gameSpeed //! changes in here sho
 int gameSpeedUpEvents = 0; // amount of times PR4 has changed its value
 
 int timesObsMoved = 0; // integer that keeps count of the amount of times the obstacles has been moved
-double score = 0; // double of the players score
+int score = 0; // double of the players score
 
 int scene = 0; // should be used to tell labwork what 'scene' to display (i.e. if it should display game over or the main game, etc.)
 int characterLane = 0;	// used to limit movement for ufo up or down.
@@ -278,99 +278,62 @@ void move_ufo (int button){
 	if((button & 0b001) && (button & 0b100)){ // if both move left and right are pressed: default button
 		return;
 	}
-	
+
 	int tempClane = characterLane;
-	
-    if((button & 0b100) && (tempClane > 0)){ // move up if btn 4 is pressed
+
+	if((button & 0b100) && (tempClane > 0)){ // move up if btn 4 is pressed
 		characterLane --;
-		tempClane = characterLane;
-		uint8_t bl_sp_abv;
-		uint8_t bl_sp_blw;
-
-		uint8_t temp0 [19];
-		uint8_t temp1 [19];
-		uint8_t temp2 [19];
-
-		int i = 0;
-		int j = 0;
-		for (i = 0; i < 19; i++){
-			if(tempClane < 8){
-				bl_sp_abv = (254 >> (8 - tempClane));
-				bl_sp_blw = 128;
-				for (j = 0; j < (7 - tempClane); j++){
-					bl_sp_blw = ((bl_sp_blw / 2) + 128);
-				}
-				temp0[i] = ((ufo[i] << (tempClane)) | bl_sp_abv);
-				temp1[i] = ((ufo[i] >> (8 - tempClane)) | bl_sp_blw);
-				temp2[i] = 255;
-			}
-			if((tempClane > 7)){
-				uint8_t bl_sp_abv = (254 >> (16 - tempClane));
-				bl_sp_blw = 128;
-				for (j = 0; j < (15 - tempClane); j++){
-					bl_sp_blw = ((bl_sp_blw / 2) + 128);
-				}
-				temp0[i] = 255;
-				temp1[i] = (ufo[i] << ((tempClane - 8))| bl_sp_abv);
-				temp2[i] = (ufo[i] >> ((16 - tempClane)) | bl_sp_blw);
-			}
-		}		
-		for (i = 0; i< 19; i++){
-			ufo_area[i] = temp0[i];
-			ufo_area[19+i] = temp1[i];
-			ufo_area[38+i] = temp2[i];
-		}
-		return;
-    }
+	}
 									
-    if((button & 0b001) && (tempClane < 16)){ // move down if btn 2 is pressed
+	if((button & 0b001) && (tempClane < 16)){ // move down if btn 2 is pressed
 		characterLane++;
-		int tempClane = characterLane;
+	}
 
-		uint8_t bl_sp_abv;
-		uint8_t bl_sp_blw;
+	tempClane = characterLane;
+	uint8_t bl_sp_abv;
+	uint8_t bl_sp_blw;
 
-		uint8_t temp0 [19];
-		uint8_t temp1 [19];
-		uint8_t temp2 [19];
+	uint8_t temp0 [19];
+	uint8_t temp1 [19];
+	uint8_t temp2 [19];
 
-		int i = 0;
-		int j = 0;
-		for (i = 0; i < 19; i++){
-			if(tempClane < 8){
-				bl_sp_abv = (254 >> (8 - tempClane));
-				bl_sp_blw = 128;
-				for (j = 0; j < (7 - tempClane); j++){
-					bl_sp_blw = ((bl_sp_blw / 2) + 128);
-				}
-				temp0[i] = ((ufo[i] << (tempClane)) | bl_sp_abv);
-				temp1[i] = ((ufo[i] >> (8 - tempClane)) | bl_sp_blw);
-				temp2[i] = 255;
+	int i = 0;
+	int j = 0;
+	for (i = 0; i < 19; i++){
+		if(tempClane < 8){
+			bl_sp_abv = (254 >> (8 - tempClane));
+			bl_sp_blw = 128;
+			for (j = 0; j < (7 - tempClane); j++){
+				bl_sp_blw = ((bl_sp_blw / 2) + 128);
 			}
+			temp0[i] = ((ufo[i] << (tempClane)) | bl_sp_abv);
+			temp1[i] = ((ufo[i] >> (8 - tempClane)) | bl_sp_blw);
+			temp2[i] = 255;
+		}
 			if(((tempClane > 7) && (tempClane < 16))){
-				uint8_t bl_sp_abv = (254 >> (16 - tempClane));
-				bl_sp_blw = 128;
-				for (j = 0; j < (15-tempClane); j++){
-					bl_sp_blw = ((bl_sp_blw / 2) + 128);
-				}
-				temp0[i] = 255;
-				temp1[i] = (ufo[i] << ((tempClane - 8))| bl_sp_abv);
-				temp2[i] = (ufo[i] >> ((16 - tempClane)) | bl_sp_blw);
+			uint8_t bl_sp_abv = (254 >> (16 - tempClane));
+			bl_sp_blw = 128;
+			for (j = 0; j < (15 - tempClane); j++){
+				bl_sp_blw = ((bl_sp_blw / 2) + 128);
 			}
+			temp0[i] = 255;
+			temp1[i] = (ufo[i] << ((tempClane - 8))| bl_sp_abv);
+			temp2[i] = (ufo[i] >> ((16 - tempClane)) | bl_sp_blw);
+		}
 			if(tempClane == 16){
 				temp0[i] = 255;
 				temp1[i] = 255;
 				temp2[i] = ufo[i];
 			}
-		}	
-			
-		for (i = 0; i< 19; i++){
-			ufo_area[i] = temp0[i];
-			ufo_area[19+i] = temp1[i];
-			ufo_area[38+i] = temp2[i];
-		}
-		return;
-    }
+	}		
+	
+	for (i = 0; i< 19; i++){
+		ufo_area[i] = temp0[i];
+		ufo_area[19+i] = temp1[i];
+		ufo_area[38+i] = temp2[i];
+	}
+	
+	return;
 }
 
 void move_obs(int spawnObs) { 
@@ -529,11 +492,15 @@ void map_update(){ //* by David
 	}
 
 	/* written by alvin, diplays score */
-		char scoreLabel[8 + sizeof(score)] = "Score: ";
-		char scoreDouble[] = score;
-		for(i = 0 ; i < sizeof(scoreDouble) ; i++){
-			scoreLabel[i + 8 + 1] = scoreDouble[i]; 
+		int tempScore = score;
+		
+		char scoreLabel[32] = "Score: ";
+		
+		for(i = sizeof("Score: ") ; i < 32 ; i++){
+			scoreLabel[i] = (tempScore % 10) + '0';
+			tempScore = tempScore / 10;
 		}
+
 
 		display_string(3, scoreLabel);
 		display_update();
