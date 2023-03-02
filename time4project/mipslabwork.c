@@ -15,10 +15,12 @@
 #include <pic32mx.h>  /* Declarations of system-specific addresses etc */
 #include "mipslab.h"  /* Declatations for these labs */
 
+/* start of global variables */ //! changes in here should also be made at the end of the labinit function
 
-int timeOutCount = 0; //! temp mby, should be able to use integrated counter
+int timer2counter = 0; // used to count timer 2 flag events
+int timer4counter = 0; // used to count timer 4 flag events
 
-int moreThen = 2000;
+int moreThen = 200; // the increment value for gameSpeed //! changes in here should also be made in gameSpeed, should be 200
 
 int gameSpeedUpEvents = 0; // amount of times PR4 has changed its value
 
@@ -28,9 +30,10 @@ int score = 0; // integer of the players score
 int scene = 0; // should be used to tell labwork what 'scene' to display (i.e. if it should display game over or the main game, etc.)
 int characterLane = 0;	// used to limit movement for ufo up or down.
 
-int timer4counter = 0; // used to count timer 4 flag events
-
 int obsCounter = 1;
+
+/* end of global variables */
+
 
 //areas
 uint8_t map[384];
@@ -45,25 +48,35 @@ volatile int* PortEPointer = (volatile int*) 0xbf886110; // Pointer goes to Port
 void user_isr( void ) //! INTENTIONAL: CLEARS ALL FLAGS 'IN CASE OF EMERGENCY'
 {
 	int buttons = getbtns();
-	
-	int aaa = 1;
-	while(aaa){
-	if(IFS(0) & 0x100){  // if int.ext.2 flag is 1 
-		if((*PortEPointer & 0xffffff00) + 255 == *PortEPointer) //! DEBUG
-    		*PortEPointer = (*PortEPointer & 0xffffff00); // lets all binary 1s be unchanged except the ones in the last 2 byte //! DEBUG
-  		else					//! DEBUG
-			*PortEPointer += 1; //! DEBUG
 
-		timer4counter++;
+	if(scene == 1){
+		if(IFS(0) & 0x100){  // if int.ext.2 flag is 1 
 
-		if(buttons)
-			move_ufo(buttons);
-		
-		move_obs(obsCounter);
-		map_update();
+			if((*PortEPointer & 0xffffff00) + 255 == *PortEPointer) //! DEBUG
+				*PortEPointer = (*PortEPointer & 0xffffff00); // lets all binary 1s be unchanged except the ones in the last 2 byte //! DEBUG
+			else					//! DEBUG
+				*PortEPointer += 1; //! DEBUG
 
-		IFSCLR(0) = 0x100;
-		aaa = 0;
+			if(buttons)
+				move_ufo(buttons);
+			
+			map_update();
+
+			timer2counter++;
+			IFSCLR(0) = 0x100;
+		}
+
+		if(IFS(0) & 0x10000){
+			if((*PortEPointer & 0xffffff00) + 255 == *PortEPointer) //! DEBUG
+				*PortEPointer = (*PortEPointer & 0xffffff00); // lets all binary 1s be unchanged except the ones in the last 2 byte //! DEBUG
+			else					//! DEBUG
+				*PortEPointer += 4; //! DEBUG
+
+			importedSRand(timer4counter);
+			move_obs(importedRand());
+
+			timer4counter++;
+			IFSCLR(0) = 0x10000;
 		}
 	}
 }
@@ -178,9 +191,25 @@ void labinit( void )
 	setup_ufo_area();
 	setup_ufo();	
 
-	//* legacy code:	
-	// setup_gameMap();
-	// showUfo();
+	/* start of variable reset */
+
+	timer2counter = 0;
+	timer4counter = 0;
+
+	moreThen = 200;
+
+	gameSpeedUpEvents = 0;
+
+	timesObsMoved = 0;
+	score = 0; 
+
+	scene = 0; 
+	characterLane = 0;
+
+	obsCounter = 1;
+
+	/* end of variable reset */
+
 	int i = 0;		
 	for(i = 0; i < sizeof(obs_area); i++)	// fills obs_area with 1's. when array is initilzed it will be all zeroes untill value is set. that will make the screen white.
 		obs_area[i] = 255;
@@ -241,13 +270,11 @@ void labinit( void )
 //} 
 
 void gameSpeed(){ // code should lower the value of PR4(tickrate 4) when TMR2(counter 2) reaches procedural values //* Alvins
-
-	int timerCount = TMR2; // saves the value of TMR2(counter 2) in an int for stability, in case it changes value in the middle of function
-
-	if(moreThen < timerCount){ // checks if timerCount is within a set parameter
-		PR4 = (int) (0x7a12 / (1 + ((gameSpeedUpEvents + 1) / 10))); // should increase tickrate by 0.1 every time if the above statement is true
+	
+	if(moreThen < timer2counter){ // checks if timerCount is within a set parameter
+		PR4 = (0x7a12 / (1 + (gameSpeedUpEvents))); // should increase tickrate every time if the above statement is true
 		gameSpeedUpEvents++; // advances gameSpeedUpEvents one, could be used to display the games current level
-		moreThen += 2000; // increases the requirment for timerCount in the 'if' statement
+		moreThen += 200; // increases the requirment for timerCount in the 'if' statement
 	}
 }
 
@@ -352,7 +379,7 @@ void move_ufo (int button){
     }
 }
 
-void move_obs(int version) { 
+void move_obs(int spawnObs) { 
 //This function will upgrade the obs area from row to move all current obs one row to the left
 // should be executed once at every flag event of timer 4 (at first maybe 10time per second with increasing speed if possible.)
 // also spawns obstacles
@@ -361,11 +388,11 @@ void move_obs(int version) {
    
 
    // spawn part
-   // if 24 flags, then spawn obstacle:
-   // there is 6 different versions. an obstacle spwans in either page 0, 1, 2, 0+1, 0+2 or 1+2;
+   // if 70 flags, then spawn obstacle:
+   // there is 6 different spawnObs. an obstacle spwans in either page 0, 1, 2, 0+1, 0+2 or 1+2;
     if (timer4counter == 70){
 
-		if(version == 1){
+		if(spawnObs == 1){
 			obsCounter+= 2;
 			for (i = 0; i < 1; i++){
            		int k = 0;
@@ -376,7 +403,7 @@ void move_obs(int version) {
 			}
 		}
 
-		if(version == 2){
+		if(spawnObs == 2){
 			obsCounter += 4;
 			for (i = 1; i < 2; i++){
            		int k = 0;
@@ -388,7 +415,7 @@ void move_obs(int version) {
 
 		}
 
-		if(version == 3){
+		if(spawnObs == 3){
 			obsCounter += 2;
 			for (i = 2; i < 3; i++){
            		int k = 0;
@@ -399,7 +426,7 @@ void move_obs(int version) {
 			}
 		}   
 
-		if(version == 4){
+		if(spawnObs == 4){
 			obsCounter += (-3);
 			for (i = 0; i < 2; i++){
            		int k = 0;
@@ -410,7 +437,7 @@ void move_obs(int version) {
 			}
 		}      
 
-		if(version == 5){
+		if(spawnObs == 5){
 			obsCounter += (-3);
 			for (i = 1; i < 3; i++){
            		int k = 0;
@@ -421,7 +448,7 @@ void move_obs(int version) {
 			}
 		}                             
 
-		if(version == 6){
+		if(spawnObs == 6){
 			obsCounter += (-2);
 			for (i = 0; i < 3; i++){
            		int k = 0;
@@ -530,6 +557,8 @@ void map_update(void){
 void labwork( void )
 {
 	int buttons = getbtns();
+	importedSRand(timer4counter);
+
   	/* start of test code */
 
 
@@ -557,6 +586,7 @@ void labwork( void )
 	if(scene == 1){
 		// the main game should run in here
 		// if game over occurs set scene = 2
+		gameSpeed();
 	}
 	else 
 	
@@ -565,27 +595,4 @@ void labwork( void )
 		// should also display the score 
 		// when button is pressed: scene = -1 to run init all over again which should reset the game back to norm
 	}
-
-	/* end of scenes */
-
-	//* uses rng to spawn obstacles:
-	/* 
-	if(timesObsMoved > 30){ // if obstacles has moved 25 pixels //todo: might be able to scale this to difficulity
-		timesObsMoved = 0;	// reset timesObsMoved
-		spawn_obstacle(randomInt(NULL, 6)); // and spawn random obstacles //! might fuck up, heard srand doesnt work on chipkit
-	}
-	*/
-
-	// gameSpeed();
-	// laneRedirect();
-	// score = (100*timesObsMoved) + (100*timesObsMoved*(gameSpeedUpEvents/2));
-
-
-	// if(btnOut | 0b0010)	// if the down button is pressed
-	// 	move_ufo(1);	// move the UFO down
-	// else				// else
-	// if(btnOut | 0b1000)	// if the up button is pressed
-	// 	move_ufo(-1);	// move the UFO up
-
-	//display_update();
 }
