@@ -28,9 +28,11 @@ int characterLane = 16;	// used to limit movement for ufo up or down.
 
 int timer4counter = 0; // used to count timer 4 flag events
 
+int obsCounter = 1;
+
 //areas
 uint8_t map[384];
-uint8_t obs_area[414]; //it is biggger than map. goes from ((0 to 2) *148). spot (((0 to 2) *148)) until(( (0 to 2) *148) + 127) overlaps with map
+uint8_t obs_area[414]; //it is biggger than map. goes from ((0 to 2) *138). spot (((0 to 2) *138)) until(( (0 to 2) *138) + 127) overlaps with map
 uint8_t ufo_area[57]; // goes from (0 to 2) *19) area is placed in (((0 to 2) *19) + 10)
 	
 
@@ -108,6 +110,12 @@ void setup_ufo(void){
     }
     display_image(0,map);
 	return;
+}
+void setup_obs_area (void){
+	int i = 0;
+	for (i = 0; i < 414; i++){
+		obs_area[i] = 255;
+	}
 }
 
 /* Lab-specific initialization goes here */
@@ -238,7 +246,6 @@ void gameSpeed(){ // code should lower the value of PR4(tickrate 4) when TMR2(co
 
 void move_ufo (int button){
 // this function will move the ufo in the direction that is indicated by the argument by one pixel at the time for as long as the buttun is held.
-// this will be done by udating a set area of pixels in determained by ufo_area
 
 	if((button & 0b001) && (button & 0b100)){ // if both move left and right are pressed: default button
 		return;
@@ -298,7 +305,7 @@ void move_ufo (int button){
 		uint8_t temp0 [19];
 		uint8_t temp1 [19];
 		uint8_t temp2 [19];
-//! försök 4
+
 		int i = 0;
 		int j = 0;
 		for (i = 0; i < 19; i++){
@@ -338,26 +345,47 @@ void move_ufo (int button){
     }
 }
 
-void move_obs(void){ 
+void move_obs(int version) { 
 //This function will upgrade the obs area from row to move all current obs one row to the left
 // should be executed once at every flag event of timer 4 (at first maybe 10time per second with increasing speed if possible.)
 // also spawns obstacles
     int i = 0;
     int j = 0;
-    timer4counter ++;
+   
 
     //spawn part
     //if 24 flags, then spawn obstacle:
-    if (timer4counter == 24){
-        for (i = 0; i < 3; i++){
-            int k = 0;
-            for (j = 136; j < 147; j++){
-                obs_area[j + (i*147)] = (255 & spaceRock[k]); //! right now, if I am correct, thsi will spawn one obstacle in each lane.
-                k++;                                          //! conditions must be set so that this will only happen in maximum 2 lanes at a time
-            }                                                 //! there should be 6 different situations. lane 1,2,3,1+2,1+3 or 2+3.
-        }                                                     //! can this be done wit some kind of loop or do we need 6 different "if" statements?
-        timer4counter = 0;
-    }
+    // if (timer4counter == 24){
+	// 	if(version == 1){
+	// 		obsCounter++;
+	// 		for (i = 0; i < 3; i++){
+    //        		int k = 0;
+	// 			for (j = 126; j < 137; j++){
+	// 				obs_area[j + (i*137)] = (255 & spaceRock[k]); 
+	// 				k++;                                      
+	// 			}
+	// 		}
+	// 	}
+	// 	if(version == 2){
+	// 		obsCounter++;
+	// 		for (i = 0; i < 3; i++){
+    //        		int k = 0;
+	// 			for (j = 126; j < 137; j++){
+	// 				obs_area[j + (i*137)] = (255 & spaceRock[k]); 
+	// 				k++;                                      
+	// 			}
+	// 		}
+
+	// 	}
+    //     // for (i = 0; i < 3; i++){
+    //     //     int k = 0;
+    //     //     for (j = 136; j < 147; j++){
+    //     //         obs_area[j + (i*147)] = (255 & spaceRock[k]); //! right now, if I am correct, thsi will spawn one obstacle in each lane.
+    //     //         k++;                                          //! conditions must be set so that this will only happen in maximum 2 lanes at a time
+    //     //     }                                                 //! there should be 6 different situations. lane 1,2,3,1+2,1+3 or 2+3.
+    //     // }                                                     //! can this be done wit some kind of loop or do we need 6 different "if" statements?
+    //     timer4counter = 0;
+    // }
 
     // this part will move everything one pixel to the left on screen.
     // everytime this function is called, this part should be executed, but if spawn is done, this should execute after spawn
@@ -368,143 +396,6 @@ void move_obs(void){
         obs_area[(i*148) + 147] = 255;
     }
 }
-// //! move ufo works but the whole game locks while it is moving
-// void move_ufo(int direction){ 	// will accept input to decide whiche direction to move. direction < 0 = upwards. directione > 0 = downwards
-// 								// updates screen afterwards.
-
-// 	if (direction < 0){			//move upwards
-// 		int timeOutCount = 0;
-// 		int blanksBelow = 128;	// to create blanks below the ship as it leaves the lane
-// 		int blanksAbove = 127;	// to create blanks above the ship as it spawns in
-// 		int shiftAbove = 7;		// how much to shift the ufo template when spawning
-// 		int shiftBelow = 1;		// how much to shift the ufo template when despawing
-// 		int j = 8;				// increment the outer loop
-// 		int i = 0;				// a counter
-// 		uint8_t temp0[19];		// tempporary image array. for the page we move into
-// 		uint8_t temp1[19];		// tempporary image array. for the page we are moving from
-
-// 		while (j > 0){	// loops 8 times. 1 for each pixel in a page.
-// 		if(IFS(0) & 0x100){
-// 			for (i = 0; i < 19; i++){ // this for loop fills our temp array with a partial image of the ufo. more with every itteration.
-// 				temp0[i] = ((ufo[i] << shiftAbove) | blanksAbove);	
-// 				temp1[i] = ((ufo[i] >> shiftBelow) | blanksBelow);	
-// 			}
-
-// 			for(i = 0 ; i < 19 ; i++){	// this for loop copies out temp value into the map at the right lane
-// 				gameMap[(characterLane*128) + (10 + i)] = ((gameMap[(characterLane*128) + (10 + i)] | 255/* or 255 to reset the image*/ )
-// 				& temp0[i]);
-// 				gameMap[((characterLane + 1)*128) + (10 + i)] = ((gameMap[((characterLane + 1)*128) + (10 + i)] | 255 )	& temp1[i]);
-// 			} 
-// 			blanksAbove = (blanksAbove / 2); 	// decrements how much blank space should be used above
-// 			blanksBelow = ((blanksBelow / 2) + 128);// increments how much blank space should be used below 
-// 			shiftAbove-- ;						// decrements how much of the ufo template to remove above
-// 			shiftBelow++;						// increments how much of the ufo template to remove below
-// 			j--;								// counts itterations. 
-
-// 			//display_update();
-// 			display_image(0, gameMap);
-// 			IFSCLR(0) = 0x100;
-// 			}
-// 		}
-// 	}
-// 	else
-// 	if (direction > 0){		//move downwards
-// 		int timeOutCount = 0;
-// 		int blanksBelow = 254;	// to create blanks below the ship as itspawns  
-// 		int blanksAbove = 1;	// to create blanks above the ship as it leaves the lane
-// 		int shiftAbove = 1;		// how much to shift the ufo template when spawning
-// 		int shiftBelow = 7;		// how much to shift the ufo template when despawing
-// 		int j = 8;				// increment the outer loop
-// 		int i = 0;				// counter variable
-// 		uint8_t temp0[19];		// tempporary image array. for the page we move into
-// 		uint8_t temp1[19];		// tempporary image array. for the page we are moving from
-
-// 		while (j > 0){	// loops 8 times. 1 for each pixel in a page.
-			
-// 			if(IFS(0) & 0x100){
-// 				IFSCLR(0) = 0x100;
-// 				for (i = 0; i < 19; i++){ // this for loop fills our temp array with a partial image of the ufo. more with every itteration.
-// 					temp0[i] = ((ufo[i] << shiftAbove) | blanksAbove);
-// 					temp1[i] = ((ufo[i] >> shiftBelow) | blanksBelow);	
-// 				}
-
-// 				for(i = 0 ; i < 19 ; i++){	// this for loop copies out temp value into the map at the right lane
-// 					gameMap[((characterLane - 1)*128) + (10 + i)] = ((gameMap[((characterLane - 1)*128) + (10 + i)] | 255 )	& temp0[i]);
-// 					gameMap[((characterLane)*128) + (10 + i)] = ((gameMap[((characterLane)*128) + (10 + i)] | 255 )	& temp1[i]);
-// 				} 
-
-// 				blanksAbove = ((blanksAbove*2) + 1); 	
-// 				blanksBelow = ((blanksBelow*2) - 256);	
-// 				shiftAbove++;						
-// 				shiftBelow--;						
-// 				j--;								
-
-// 				display_image(0, gameMap);
-// 			}
-// 		}
-// 	}
-
-// 	return;
-// }
-
-// Legacy code:
-// void setup_gameMap(void){
-// 	int row = 0;
-// 	int column = 0;
-// 	for(row = 0 ; row < 4 ; row++){			//this loop is for filling the map with the darkness of space.
-// 		for(column = 0 ; column < 128 ; column++){			
-// 				gameMap[(row*128) + column] = 255;		
-// 		}
-// 	}
-// }
-
-// void create_obstacle (int lane){ // spawns a spaceRock at the end of the map Lane 0 is top lane
-//     int i = 0;
-// 	int column;
-// 	for(column = 127 ; column > 117 ; column--){			
-// 		gameMap[(lane*128) + column] = gameMap[((lane*128) + column) | 255] & spaceRock[i];
-//         i++;
-//     }
-// 	display_image(0, gameMap);
-// }
-
-// void move_obs(void){	//! fucked up from here
-
-// 	// alla lanes en pixel per call
-
-// 	int lane = 0;
-// 	int column = 0;
-// 	uint8_t temp[512];
-// 	for (lane = 0; lane < 3; lane++){
-// 		for(column = 0; column <127; column++){
-// 			temp[((lane*128) + column)] = (gameMap[((lane*128) + (column + 1))] |255);
-// 		}
-// 		temp[(lane* 128) + 127] = 255;
-// 	}
-// 	for (lane = 0; lane < 512; lane ++){
-// 		gameMap[lane] = gameMap[lane] & temp[lane];
-
-// 						//! to about here
-// 		timesObsMoved++;
-// 	}
-// 	display_image(0,gameMap);
-// 	showUfo();
-	
-// 	// int i = 0;
-// 	// int column;
-	
-// 	// //if(IFS(0) & 0x100){  // if int.ext.2 flag is 1 
-// 	// for(column = 116 ; column > 0 ; column--){		// moves the obs. column by column in it's lane
-// 	// 	for (i = 0 ; i < 10 ; i++){					// updates image
-// 	// 		gameMap[((lane*128) + column) + i] = gameMap[(((lane*128) + column) + i) | 255] & spaceRock[i];
-// 	// 		*PortEPointer += 1; //! DEBUG
-// 	// 		gameMap[((lane*128) + column) + 11] = 255;
-// 	// 		}
-// 	// 	}
-// 	// 	//IFSCLR(0) = 0x100;
-//     //     display_image(0, gameMap);
-// 	// //}
-// }
 
 // void spawn_obstacle(int bLane){ // bLane checks the 3 LSB and calls a function to create obstacles 
 // 								// in the lanes corresponded by the bits. 
@@ -524,85 +415,6 @@ void move_obs(void){
 // 		create_obstacle(0);
 // 	}	
 // }
-
-// void explode(int lane){ //! will not use
-
-// 	int j;
-// 	for(j = 0; j < 10; j++){
-// 		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp1[j];
-// 	}
-// 	display_image(0, gameMap);
-//     delayTest = 0;      
-//     while (delayTest < 100000){
-// 		delayTest++;
-// 	}
-// 	for(j = 0; j < 10; j++){
-// 		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & (exp1[j] & exp2[j]);
-// 	}
-// 		display_image(0, gameMap);
-	
-//         delayTest = 0;     
-//         while (delayTest < 100000){
-// 			delayTest++;
-// 		}
-// 	for(j = 0; j < 10; j++){
-// 		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp2[j];
-// 	}
-// 		display_image(0, gameMap);
-
-//         delayTest = 0;    
-//         while (delayTest < 100000){
-// 			delayTest++;
-// 		}
-// 	for(j = 0; j < 10; j++){
-// 		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & (exp2[j] & exp3[j]);
-// 	}
-// 		display_image(0, gameMap);
-
-//         delayTest = 0;     
-//         while (delayTest < 100000){
-// 			delayTest++;
-// 		}
-// 	for(j = 0; j < 10; j++){	
-// 		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp3[j];
-// 	}
-// 		display_image(0, gameMap);
-
-//         delayTest = 0;     
-//         while (delayTest < 100000){
-// 			delayTest++;
-// 		}
-// 	for(j = 0; j < 10; j++){
-// 		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & (exp3[j] & exp4[j]);
-// 	}
-// 		display_image(0, gameMap);
-
-//         delayTest = 0;      
-//         while (delayTest < 100000){
-// 			delayTest++;
-// 		}
-// 	for(j = 0; j < 10; j++){
-// 		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255) & exp4[j];
-// 	}
-// 		display_image(0, gameMap);
-
-//         delayTest = 0;     
-//         while (delayTest < 100000){
-// 			delayTest++;
-// 		}
-// 	for(j = 0; j < 10; j++){
-// 		gameMap[(lane*128) + j] = (gameMap[(lane*128) + j] |255);
-// 	}
-
-//  		display_image(0, gameMap);
-
-//         delayTest = 0;  
-//         while (delayTest < 100000){
-// 			delayTest++;
-// 		}
-   
-// }
-
 
 //? Templates for timer interrupts:
 /* delay with timer 2:
@@ -624,23 +436,38 @@ void map_update(void){
 //this is done once with every flag event from timer 2 (if possible, 30 times per second?)
     int i = 0;
     int j = 0;
-	
+// first clear the map
+	for (i = 0; i < 384; i++){
+		map[i] = 255;
+	}
+// spawn in new obs area in map
+	for (i = 0; i < 128; i++){
+		for (j = 0; j < 3; j++){
+			map[(j*128) + i] = (map[(j*128) + i] & obs_area[(j*138) + i]);
+		}
+	}
 
-    for (i = 0; i < 3; i++){
-		int k = 0;
-        for (j = 0; j < 128; j++){
-            if ((j > 9) && (j < 29)){ //if j is in this intervall we are in the area of the ufo and does an bitwise AND between ufo and obs.
-               // map[(i*128) + j] = (255 & (obs_area[(i*138) + j] & ufo_area[(i*19) + k])); // this code might override buttom page.
-				map[(i*128) + j] = (255 & ufo_area[(i*19) + k]);
-				//map[(i*128) + j] = (255 & obs_area[(i*138) + j]);
-				k++;
-            }
-            else{ // here we are outside od the ufo range and as such do not need the ufo_area
-                //map[(i*128) + j] = (255 & (obs_area[(i*138) + j]));
-				map[(i*128) + j] = 255;
-            }
-        }
-    }
+// add on top of this also the ufo area
+	for(i = 0; i < 3; i++){
+		for(j = 0; j < 19; j++){
+			map[((i*128) + (j+10))] = (map[((i*128) + (j+10))] & ufo_area[(i*19) + j]);
+		}
+	}
+
+    // for (i = 0; i < 3; i++){
+	// 	int k = 0;
+    //     for (j = 0; j < 128; j++){
+    //         if ((j > 9) && (j < 29)){ //if j is in this intervall we are in the area of the ufo and does an bitwise AND between ufo and obs.
+    //            	map[(i*128) + j] = (255 & (obs_area[(i*138) + j])); // this code might override buttom page.
+	// 			map[(i*128) + j] = (255 & ufo_area[(i*19) + k]);
+	// 			//map[(i*128) + j] = (255 & obs_area[(i*138) + j]);
+	// 			k++;
+    //         }
+    //         else{ // here we are outside od the ufo range and as such do not need the ufo_area
+    //             map[(i*128) + j] = (255 & (obs_area[(i*138) + j]));
+    //         }
+    //     }
+    // }
     display_image(0,map);
 }
 
@@ -661,16 +488,15 @@ void labwork( void )
 
 		if(buttons)
 			move_ufo(buttons);
-
-		if(ifs())
-
+		
+		move_obs(obsCounter);
 		map_update();
 
 		IFSCLR(0) = 0x100;
 		aaa = 0;
 		}
-		
 	}
+}
 
 	/* end of test code */
 
@@ -693,4 +519,3 @@ void labwork( void )
 	// 	move_ufo(-1);	// move the UFO up
 
 	//display_update();
-}
