@@ -95,37 +95,38 @@ void user_isr( void ) //! INTENTIONAL: CLEARS ALL FLAGS 'IN CASE OF EMERGENCY'
 	}
 }
 
-void setup_ufo_area(void) {
+void setup_ufo_area(void) { //* by David
     // setting up the area first time. called once in init before setting up the ufo on the map (setup_ufo();)
     int i = 0;
     int j = 0;
 
-    for (i = 0; i < 3; i++){
-        for (j = 0; j < 19; j++){
-           if (i == 0){
+    for (i = 0; i < 3; i++){  // "i" decides in which page we are
+        for (j = 0; j < 19; j++){	// "j" decides in which column we are
+           if (i == 0){				//condition for initial spawn, so we won't get more than one ufo image.
                 ufo_area[(i*19) + j] = (ufo[j]); //since a 1 on the screen means black. the 0s in ufo will be visible by bitwise AND
             }
             else{
-                ufo_area[(i*19) + j] = 255; // rest of the area is black
+                ufo_area[(i*19) + j] = 255; // rest of the area is black. 255 is 1111 1111 in binary. with current display_image function, that means all black.
            }
         }
     }
 }
 
-void setup_map(void){
+// this function sets the map as initially black.
+void setup_map(void){   //* by David
 	int i = 0;
     int j = 0;
 
 	for (i = 0; i < 3; i++){
         for (j = 0; j < 128; j++){
-            map[(i*128) + j] = 255;
+            map[(i*128) + j] = 255;  // fill each column (j) of each page(i) with 1's.
 		}
 	}
-	display_image(0, map);
+	display_image(0, map); // display the image.
 	return;
 }
 
-void setup_ufo(void){
+void setup_ufo(void){   //* by David
     // setting up the ufo_area on the map. should only be called once. goes in labinit
     int i = 0;
     int j = 0;
@@ -145,7 +146,7 @@ void setup_ufo(void){
     display_image(0,map);
 	return;
 }
-void setup_obs_area (void){
+void setup_obs_area (void){   //* by David
 	int i = 0;
 	for (i = 0; i < 414; i++){
 		obs_area[i] = 255;
@@ -226,7 +227,7 @@ void labinit( void )
 
 	int i = 0;		
 	for(i = 0; i < sizeof(obs_area); i++)	// fills obs_area with 1's. when array is initilzed it will be all zeroes untill value is set. that will make the screen white.
-		obs_area[i] = 255;
+		obs_area[i] = 255;					 //* by David
 
 	return;
 }
@@ -276,15 +277,18 @@ void gameSpeed(){ // code should lower the value of PR4(tickrate 4) when TMR2(co
 	}
 }
 
-void move_ufo (int button){
+void move_ufo (int button){  //* by David
 // this function will move the ufo in the direction that is indicated by the argument by one pixel at the time for as long as the buttun is held.
 
 	if((button & 0b001) && (button & 0b100)){ // if both move left and right are pressed: default button
 		return;
 	}
 
-	int tempClane = characterLane;
+	int tempClane = characterLane; // first we copy character lane to see where we are moving from
 
+	// the following if statements check which buttun is pressed. that indicates in what direction we are moving
+	// the check with tempClane is to decide if we are allowed to move further in that direction.
+	// assuming a move, characterLane is then adjusted accordingly
 	if((button & 0b100) && (tempClane > 0)){ // move up if btn 4 is pressed
 		characterLane --;
 	}
@@ -292,29 +296,37 @@ void move_ufo (int button){
 	if((button & 0b001) && (tempClane < 16)){ // move down if btn 2 is pressed
 		characterLane++;
 	}
-
+	// tempClane i uppdated with a the new value
 	tempClane = characterLane;
+	// we create variables used to represent "black space" above or below our ufo.
 	uint8_t bl_sp_abv;
 	uint8_t bl_sp_blw;
 
+	// we create temporary arrays to carry an image each of the ufo but shifted the right amount depending on our position.
 	uint8_t temp0 [19];
 	uint8_t temp1 [19];
 	uint8_t temp2 [19];
 
 	int i = 0;
 	int j = 0;
-	for (i = 0; i < 19; i++){
-		if(tempClane < 8){
+
+	// in this next segment we have our movment logic.
+	for (i = 0; i < 19; i++){ // whatever we do, we want to do it 19 times to fill the entire width of the ufo_area.
+		if(tempClane < 8){	//depending on where we are moving to, we need different images.
+			// first we set how much black space we need around the ufo image
+			// the space above is more straightforward
 			bl_sp_abv = (254 >> (8 - tempClane));
 			bl_sp_blw = 128;
+			// the space below is more cmoplex. it is x1= x0 /2 +x0, x2= x1 /2 +x0. and so on. 
 			for (j = 0; j < (7 - tempClane); j++){
 				bl_sp_blw = ((bl_sp_blw / 2) + 128);
 			}
+			// then we decide how much we need to shift out images
 			temp0[i] = ((ufo[i] << (tempClane)) | bl_sp_abv);
 			temp1[i] = ((ufo[i] >> (8 - tempClane)) | bl_sp_blw);
-			temp2[i] = 255;
+			temp2[i] = 255; // since we are moving here in the uppwe two lanes, the third one is all black.
 		}
-			if(((tempClane > 7) && (tempClane < 16))){
+			if(((tempClane > 7) && (tempClane < 16))){  // same thing but adjustet for the two lower lanes.
 			uint8_t bl_sp_abv = (254 >> (16 - tempClane));
 			bl_sp_blw = 128;
 			for (j = 0; j < (15 - tempClane); j++){
@@ -324,25 +336,26 @@ void move_ufo (int button){
 			temp1[i] = (ufo[i] << ((tempClane - 8))| bl_sp_abv);
 			temp2[i] = (ufo[i] >> ((16 - tempClane)) | bl_sp_blw);
 		}
-			if(tempClane == 16){
+			if(tempClane == 16){// edge case of being completely in the bottom lane.
 				temp0[i] = 255;
 				temp1[i] = 255;
 				temp2[i] = ufo[i];
 			}
 	}		
 	
+	// after we have assigned the proper images to our Temps, we write them in their respective lane into our ufo area
 	for (i = 0; i< 19; i++){
 		ufo_area[i] = temp0[i];
 		ufo_area[19+i] = temp1[i];
 		ufo_area[38+i] = temp2[i];
 	}
-	
+	// now we are ready to send our updated area to the map update function.
 	return;
 }
 
-void move_obs(int spawnObs) { 
+void move_obs(int spawnObs) {   //* by David
 //This function will upgrade the obs area from row to move all current obs one row to the left
-// should be executed once at every flag event of timer 4 (at first maybe 10time per second with increasing speed if possible.)
+// should be executed once at every flag event of timer 4 
 // also spawns obstacles
     int i = 0;
     int j = 0;
@@ -351,6 +364,8 @@ void move_obs(int spawnObs) {
    // spawn part
    // if 70 flags, then spawn obstacle:
    // there is 6 different spawnObs. an obstacle spwans in either page 0, 1, 2, 0+1, 0+2 or 1+2;
+   // we use the bigger array that is the obstacle area to spawn obstacles out of screen. 
+   // this way they will seemingly fly in from outside the edge.
     if (timer4counter == 70){
 
 		if(spawnObs == 1){
@@ -420,14 +435,7 @@ void move_obs(int spawnObs) {
 				}
 			}
 		}                                                                                   
-        // for (i = 0; i < 3; i++){
-        //     int k = 0;
-        //     for (j = 136; j < 147; j++){
-        //         obs_area[j + (i*147)] = (255 & spaceRock[k]); //! right now, if I am correct, thsi will spawn one obstacle in each lane.
-        //         k++;                                          //! conditions must be set so that this will only happen in maximum 2 lanes at a time
-        //     }                                                 //! there should be 6 different situations. lane 1,2,3,1+2,1+3 or 2+3.
-        // }                                                     //! can this be done wit some kind of loop or do we need 6 different "if" statements?
-        timer4counter = 0;
+         timer4counter = 0; 
     }
 
     // this part will move everything in obs_area one pixel to the left on screen.
@@ -488,9 +496,9 @@ void map_update(){ //* by David
 	for(i = 0; i < 3; i++){
 		uint8_t crashTest = 0;
 		for(j = 0; j < 19; j++){
-			crashTest = (ufo_area[(i*19)+j] | obs_area[(i*138) + (j+10)]);
-			if((crashTest != 255)){
-				scene = 2;
+			crashTest = (ufo_area[(i*19)+j] | obs_area[(i*138) + (j+10)]); 	// since both the ufo and obstacles are presented on the map
+			if((crashTest != 255)){											// by zeros, a bitwise OR will show of if there has been a hit.
+				scene = 2;// go to exist scene.
 			}
 		}
 	}
@@ -530,14 +538,7 @@ void map_update(){ //* by David
 /* This function is called repetitively from the main program */
 void labwork( void )
 {
-	int buttons = getbtns();
-
-  	/* start of test code */
-
-
-
-	/* end of test code */
-
+	//int buttons = getbtns();  //!may be used for exiting game over scene
 
 	/* start of scenes */
 
