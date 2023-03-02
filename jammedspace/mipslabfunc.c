@@ -144,7 +144,7 @@ void display_string(int line, char *s) {
 void display_image(int x, const uint8_t *data) {
 	int i, j;
 	
-	for(i = 0; i < 3; i++) {    //!David have made changes here
+	for(i = 0; i < 3; i++) {    //* David have made changes here
 		DISPLAY_CHANGE_TO_COMMAND_MODE;
 
 		spi_send_recv(0x22);

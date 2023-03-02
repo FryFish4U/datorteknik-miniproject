@@ -11,8 +11,9 @@
 
    For copyright and licensing, see file COPYING */
 
-void* stdout; 		  // need to compile with stdlib (Alvin)
-#include <stdlib.h>	  // need for rand and srand	 (Alvin)
+void* stdout; 		  // need to compile with stdlib.h		(Alvin)
+#include <stdlib.h>	  // need stdlib.h for rand and srand 	(Alvin)
+
 #include <stdint.h>   /* Declarations of uint_32 and the like */
 #include <pic32mx.h>  /* Declarations of system-specific addresses etc */
 #include "mipslab.h"  /* Declatations for these labs */
@@ -27,7 +28,7 @@ int moreThen = 200; // the increment value for gameSpeed //! changes in here sho
 int gameSpeedUpEvents = 0; // amount of times PR4 has changed its value
 
 int timesObsMoved = 0; // integer that keeps count of the amount of times the obstacles has been moved
-int score = 0; // integer of the players score
+double score = 0; // double of the players score
 
 int scene = 0; // should be used to tell labwork what 'scene' to display (i.e. if it should display game over or the main game, etc.)
 int characterLane = 0;	// used to limit movement for ufo up or down.
@@ -69,12 +70,6 @@ void user_isr( void ) //! INTENTIONAL: CLEARS ALL FLAGS 'IN CASE OF EMERGENCY'
 
 	if(scene == 1){
 		if(IFS(0) & 0x100){  // if int.ext.2 flag is 1 
-
-			if((*PortEPointer & 0xffffff00) + 255 == *PortEPointer) //! DEBUG
-				*PortEPointer = (*PortEPointer & 0xffffff00); // lets all binary 1s be unchanged except the ones in the last 2 byte //! DEBUG
-			else					//! DEBUG
-				*PortEPointer += 1; //! DEBUG
-
 			if(buttons)
 				move_ufo(buttons);
 			
@@ -85,12 +80,8 @@ void user_isr( void ) //! INTENTIONAL: CLEARS ALL FLAGS 'IN CASE OF EMERGENCY'
 			IFSCLR(0) = 0x100;
 		}
 
+
 		if(IFS(0) & 0x10000){
-			if((*PortEPointer & 0xffffff00) + 255 == *PortEPointer) //! DEBUG
-				*PortEPointer = (*PortEPointer & 0xffffff00); // lets all binary 1s be unchanged except the ones in the last 2 byte //! DEBUG
-			else					//! DEBUG
-				*PortEPointer += 4; //! DEBUG
-			
 			int spawnInt = makeRandomInt(0,6);
 			move_obs(spawnInt);
 
@@ -168,7 +159,7 @@ void labinit( void )
 
 	T2CONSET = 0x70; // should be 1:256 due to clock being 8 MHz and timer not having an implemented 1:128 prescaler
 	TMR2 = 0x0; // clears timer counter reg. 
-	PR2 = 0x7a12; // 16 bit register - since timer only uses 4 bytes - lower number means slower clock(??) - int value seems to change tick rate
+	PR2 = (((0x7a12)/4)*3); // 16 bit register - since timer only uses 4 bytes - lower number means slower clock(??) - int value seems to change tick rate
 
 	IPC(2) = 0x1f; // priority 7 sub prio 3 - aka highest priority
 	IECSET(0) = 0x100; // enable timer 2 flag
@@ -536,6 +527,18 @@ void map_update(){ //* by David
 			}
 		}
 	}
+
+	/* written by alvin, diplays score */
+		char scoreLabel[8 + sizeof(score)] = "Score: ";
+		char scoreDouble[] = score;
+		for(i = 0 ; i < sizeof(scoreDouble) ; i++){
+			scoreLabel[i + 8 + 1] = scoreDouble[i]; 
+		}
+
+		display_string(3, scoreLabel);
+		display_update();
+	/* end of score display */
+
 // spawn in new obs area over the map
 	for (i = 0; i < 128; i++){
 		for (j = 0; j < 3; j++){
