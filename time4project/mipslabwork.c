@@ -72,8 +72,8 @@ void user_isr( void )
 			else					//! DEBUG
 				*PortEPointer += 4; //! DEBUG
 
-			importedSRand(timer4counter);
-			move_obs(importedRand());
+			// importedSRand(timer4counter);
+			move_obs(2);
 
 			timer4counter++;
 			IFSCLR(0) = 0x10000;
@@ -526,16 +526,16 @@ void map_update(void){ //* by David
 		map[i] = 255;
 	}
 
-//check for hits
-	for(i = 0; i < 3; i++){
-		uint8_t crashTest = 0;
-		for(j = 0; j < 19; j++){
-			crashTest = (ufo_area[(i*19)+j] | obs_area[(i*138) + (j+10)]); 	// both ufo and obstacle is represented by zeros.
-			if((crashTest != 255)){											// a bitwise or will generate 255 unless there is an overlap
-				scene = 2;													// eg. crash
-			}
-		}
-	}
+// check for hits
+// 	for(i = 0; i < 3; i++){
+// 		uint8_t crashTest = 0;
+// 		for(j = 0; j < 19; j++){
+// 			crashTest = (ufo_area[(i*19)+j] | obs_area[(i*138) + (j+10)]); 	// both ufo and obstacle is represented by zeros.
+// 			if((crashTest != 255)){											// a bitwise or will generate 255 unless there is an overlap
+// 				scene = 2;													// eg. crash
+// 			}
+// 		}
+// 	}
 // spawn in new obs area over the map
 	for (i = 0; i < 128; i++){
 		for (j = 0; j < 3; j++){
@@ -544,11 +544,11 @@ void map_update(void){ //* by David
 	}
 
 // add on top of this also the spawn the updated ufo area in it's set place
-	for(i = 0; i < 3; i++){
-		for(j = 0; j < 19; j++){
-			map[((i*128) + (j+10))] = (map[((i*128) + (j+10))] & ufo_area[(i*19) + j]);
-		}
-	}
+	// for(i = 0; i < 3; i++){
+	// 	for(j = 0; j < 19; j++){
+	// 		map[((i*128) + (j+10))] = (map[((i*128) + (j+10))] & ufo_area[(i*19) + j]);
+	// 	}
+	// }
 // Display everything with the borrowed and slightly modified display image function.
     display_image(0,map);
 }
@@ -557,8 +557,6 @@ void map_update(void){ //* by David
 void labwork( void )
 {
 	int buttons = getbtns();
-	importedSRand(timer4counter);
-
   	/* start of test code */
 
 
