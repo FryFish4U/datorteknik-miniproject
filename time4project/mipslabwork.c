@@ -45,7 +45,7 @@ volatile int* PortEPointer = (volatile int*) 0xbf886110; // Pointer goes to Port
 
 
 /* Interrupt Service Routine */ 
-void user_isr( void ) //! INTENTIONAL: CLEARS ALL FLAGS 'IN CASE OF EMERGENCY'
+void user_isr( void )
 {
 	int buttons = getbtns();
 
@@ -81,7 +81,7 @@ void user_isr( void ) //! INTENTIONAL: CLEARS ALL FLAGS 'IN CASE OF EMERGENCY'
 	}
 }
 
-void setup_ufo_area(void) {
+void setup_ufo_area(void) { //* by David
     // setting up the area first time. called once in init before setting up the ufo on the map (setup_ufo();)
     int i = 0;
     int j = 0;
@@ -98,7 +98,8 @@ void setup_ufo_area(void) {
     }
 }
 
-void setup_map(void){
+// this sets the map initially to all black
+void setup_map(void){ //* by David 
 	int i = 0;
     int j = 0;
 
@@ -111,8 +112,9 @@ void setup_map(void){
 	return;
 }
 
-void setup_ufo(void){
     // setting up the ufo_area on the map. should only be called once. goes in labinit
+void setup_ufo(void){//* by David
+
     int i = 0;
     int j = 0;
 
@@ -278,29 +280,36 @@ void gameSpeed(){ // code should lower the value of PR4(tickrate 4) when TMR2(co
 	}
 }
 
-void move_ufo (int button){
+//* By David
+void move_ufo (int button){     // setting up the ufo_area on the map. should only be called once. goes in labinit
 // this function will move the ufo in the direction that is indicated by the argument by one pixel at the time for as long as the buttun is held.
-
-	if((button & 0b001) && (button & 0b100)){ // if both move left and right are pressed: default button
+// this functions displays a shifted version of the ufo sprite in one of the three lanes at the same time.
+// the amount of shifts are dependant on the characterLane variable.
+	if((button & 0b001) && (button & 0b100)){ // if both buttons or no button is pressed, m
 		return;
 	}
 	
-	int tempClane = characterLane;
+	int tempClane = 0;
 	
     if((button & 0b100) && (tempClane > 0)){ // move up if btn 4 is pressed
 		characterLane --;
 		tempClane = characterLane;
+		
+		//create blank space above and below variables
 		uint8_t bl_sp_abv;
 		uint8_t bl_sp_blw;
 
+		// create the sprite copies
 		uint8_t temp0 [19];
 		uint8_t temp1 [19];
 		uint8_t temp2 [19];
 
 		int i = 0;
 		int j = 0;
+
+		// depending on where the characterLane variable (tempClane) is at, we handle the shifts and fillers differently.
 		for (i = 0; i < 19; i++){
-			if(tempClane < 8){
+			if(tempClane < 8){  // if it is moving in the middle and top page
 				bl_sp_abv = (254 >> (8 - tempClane));
 				bl_sp_blw = 128;
 				for (j = 0; j < (7 - tempClane); j++){
@@ -310,7 +319,7 @@ void move_ufo (int button){
 				temp1[i] = ((ufo[i] >> (8 - tempClane)) | bl_sp_blw);
 				temp2[i] = 255;
 			}
-			if((tempClane > 7)){
+			if((tempClane > 7)){ // if it is moving in the lower and middle page
 				uint8_t bl_sp_abv = (254 >> (16 - tempClane));
 				bl_sp_blw = 128;
 				for (j = 0; j < (15 - tempClane); j++){
@@ -328,7 +337,8 @@ void move_ufo (int button){
 		}
 		return;
     }
-									
+			// same thing as upwards, but downwards. theese two parts are almost identical and should be possible to make smaller
+			// but i have not the time to figure it out.						
     if((button & 0b001) && (tempClane < 16)){ // move down if btn 2 is pressed
 		characterLane++;
 		int tempClane = characterLane;
@@ -379,7 +389,7 @@ void move_ufo (int button){
     }
 }
 
-void move_obs(int spawnObs) { 
+void move_obs(int spawnObs) { //* by david
 //This function will upgrade the obs area from row to move all current obs one row to the left
 // should be executed once at every flag event of timer 4 (at first maybe 10time per second with increasing speed if possible.)
 // also spawns obstacles
@@ -388,13 +398,13 @@ void move_obs(int spawnObs) {
    
 
    // spawn part
-   // if 70 flags, then spawn obstacle:
-   // there is 6 different spawnObs. an obstacle spwans in either page 0, 1, 2, 0+1, 0+2 or 1+2;
+   // if 24 flags, then spawn obstacle:
+   // there is 6 different versions. an obstacle spwans in either page 0, 1, 2, 0+1, 0+2 or 1+2;
     if (timer4counter == 70){
 
 		if(spawnObs == 1){
 			obsCounter+= 2;
-			for (i = 0; i < 1; i++){
+			for (i = 0; i < 1; i++){ // the "i" variable in each version decides where tho obstacles spawn
            		int k = 0;
 				for (j = 126; j < 136; j++){
 					obs_area[j + (i*137)] = (spaceRock[k]); 
@@ -459,13 +469,6 @@ void move_obs(int spawnObs) {
 				}
 			}
 		}                                                                                   
-        // for (i = 0; i < 3; i++){
-        //     int k = 0;
-        //     for (j = 136; j < 147; j++){
-        //         obs_area[j + (i*147)] = (255 & spaceRock[k]); //! right now, if I am correct, thsi will spawn one obstacle in each lane.
-        //         k++;                                          //! conditions must be set so that this will only happen in maximum 2 lanes at a time
-        //     }                                                 //! there should be 6 different situations. lane 1,2,3,1+2,1+3 or 2+3.
-        // }                                                     //! can this be done wit some kind of loop or do we need 6 different "if" statements?
         timer4counter = 0;
     }
 
@@ -513,7 +516,7 @@ void move_obs(int spawnObs) {
 	}
 */
 
-void map_update(void){
+void map_update(void){ //* by David
 //what is meant to be done here is to combine all the new information on the top three pages of the display and show it.
 //this is done once with every flag event from timer 2 (if possible, 30 times per second?)
     int i = 0;
@@ -522,34 +525,31 @@ void map_update(void){
 	for (i = 0; i < 384; i++){
 		map[i] = 255;
 	}
-// spawn in new obs area in map
+
+//check for hits
+	for(i = 0; i < 3; i++){
+		uint8_t crashTest = 0;
+		for(j = 0; j < 19; j++){
+			crashTest = (ufo_area[(i*19)+j] | obs_area[(i*138) + (j+10)]);
+			if((crashTest != 255)){
+				scene = 2;
+			}
+		}
+	}
+// spawn in new obs area over the map
 	for (i = 0; i < 128; i++){
 		for (j = 0; j < 3; j++){
 			map[(j*128) + i] = (map[(j*128) + i] & obs_area[(j*138) + i]);
 		}
 	}
 
-// add on top of this also the ufo area
+// add on top of this also the spawn the updated ufo area in it's set place
 	for(i = 0; i < 3; i++){
 		for(j = 0; j < 19; j++){
 			map[((i*128) + (j+10))] = (map[((i*128) + (j+10))] & ufo_area[(i*19) + j]);
 		}
 	}
-
-    // for (i = 0; i < 3; i++){
-	// 	int k = 0;
-    //     for (j = 0; j < 128; j++){
-    //         if ((j > 9) && (j < 29)){ //if j is in this intervall we are in the area of the ufo and does an bitwise AND between ufo and obs.
-    //            	map[(i*128) + j] = (255 & (obs_area[(i*138) + j])); // this code might override buttom page.
-	// 			map[(i*128) + j] = (255 & ufo_area[(i*19) + k]);
-	// 			//map[(i*128) + j] = (255 & obs_area[(i*138) + j]);
-	// 			k++;
-    //         }
-    //         else{ // here we are outside od the ufo range and as such do not need the ufo_area
-    //             map[(i*128) + j] = (255 & (obs_area[(i*138) + j]));
-    //         }
-    //     }
-    // }
+// Display everything with the borrowed and slightly modified display image function.
     display_image(0,map);
 }
 
