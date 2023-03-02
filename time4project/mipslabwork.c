@@ -24,7 +24,7 @@ int gameSpeedUpEvents = 0; // amount of times PR4 has changed its value
 
 int timesObsMoved = 0;
 
-int characterLane = 16;	// used to limit movement for ufo up or down.
+int characterLane = 0;	// used to limit movement for ufo up or down.
 
 int timer4counter = 0; // used to count timer 4 flag events
 
@@ -68,7 +68,7 @@ void setup_ufo_area(void) {
 
     for (i = 0; i < 3; i++){
         for (j = 0; j < 19; j++){
-           if (i == 2){
+           if (i == 0){
                 ufo_area[(i*19) + j] = (ufo[j]); //since a 1 on the screen means black. the 0s in ufo will be visible by bitwise AND
             }
             else{
@@ -353,47 +353,93 @@ void move_obs(int version) {
     int j = 0;
    
 
-    //spawn part
-    //if 24 flags, then spawn obstacle:
-    // if (timer4counter == 24){
-	// 	if(version == 1){
-	// 		obsCounter++;
-	// 		for (i = 0; i < 3; i++){
-    //        		int k = 0;
-	// 			for (j = 126; j < 137; j++){
-	// 				obs_area[j + (i*137)] = (255 & spaceRock[k]); 
-	// 				k++;                                      
-	// 			}
-	// 		}
-	// 	}
-	// 	if(version == 2){
-	// 		obsCounter++;
-	// 		for (i = 0; i < 3; i++){
-    //        		int k = 0;
-	// 			for (j = 126; j < 137; j++){
-	// 				obs_area[j + (i*137)] = (255 & spaceRock[k]); 
-	// 				k++;                                      
-	// 			}
-	// 		}
+   // spawn part
+   // if 24 flags, then spawn obstacle:
+    if (timer4counter == 70){
 
-	// 	}
-    //     // for (i = 0; i < 3; i++){
-    //     //     int k = 0;
-    //     //     for (j = 136; j < 147; j++){
-    //     //         obs_area[j + (i*147)] = (255 & spaceRock[k]); //! right now, if I am correct, thsi will spawn one obstacle in each lane.
-    //     //         k++;                                          //! conditions must be set so that this will only happen in maximum 2 lanes at a time
-    //     //     }                                                 //! there should be 6 different situations. lane 1,2,3,1+2,1+3 or 2+3.
-    //     // }                                                     //! can this be done wit some kind of loop or do we need 6 different "if" statements?
-    //     timer4counter = 0;
-    // }
+		if(version == 1){
+			obsCounter++;
+			for (i = 0; i < 1; i++){
+           		int k = 0;
+				for (j = 126; j < 137; j++){
+					obs_area[j + (i*137)] = (spaceRock[k]); 
+					k++;                                      
+				}
+			}
+		}
 
-    // this part will move everything one pixel to the left on screen.
+		if(version == 2){
+			obsCounter ++;
+			for (i = 1; i < 2; i++){
+           		int k = 0;
+				for (j = 126; j < 137; j++){
+					obs_area[j + (i*137)] = (255 & spaceRock[k]); 
+					k++;                                      
+				}
+			}
+
+		}
+
+		if(version == 3){
+			obsCounter = 1;
+			for (i = 2; i < 3; i++){
+           		int k = 0;
+				for (j = 126; j < 137; j++){
+					obs_area[j + (i*137)] = (255 & spaceRock[k]); 
+					k++; 
+				}
+			}
+		}   
+
+		if(version == 4){
+			obsCounter = 1;
+			for (i = 2; i < 3; i++){
+           		int k = 0;
+				for (j = 126; j < 137; j++){
+					obs_area[j + (i*137)] = (255 & spaceRock[k]); 
+					k++; 
+				}
+			}
+		}      
+
+		if(version == 5){
+			obsCounter = 1;
+			for (i = 2; i < 3; i++){
+           		int k = 0;
+				for (j = 126; j < 137; j++){
+					obs_area[j + (i*137)] = (255 & spaceRock[k]); 
+					k++; 
+				}
+			}
+		}                             
+
+		if(version == 6){
+			obsCounter = 1;
+			for (i = 2; i < 3; i++){
+           		int k = 0;
+				for (j = 126; j < 137; j++){
+					obs_area[j + (i*137)] = (255 & spaceRock[k]); 
+					k++; 
+				}
+			}
+		}                                                                                    
+        // for (i = 0; i < 3; i++){
+        //     int k = 0;
+        //     for (j = 136; j < 147; j++){
+        //         obs_area[j + (i*147)] = (255 & spaceRock[k]); //! right now, if I am correct, thsi will spawn one obstacle in each lane.
+        //         k++;                                          //! conditions must be set so that this will only happen in maximum 2 lanes at a time
+        //     }                                                 //! there should be 6 different situations. lane 1,2,3,1+2,1+3 or 2+3.
+        // }                                                     //! can this be done wit some kind of loop or do we need 6 different "if" statements?
+        timer4counter = 0;
+    }
+
+    // this part will move everything in obs_area one pixel to the left on screen.
     // everytime this function is called, this part should be executed, but if spawn is done, this should execute after spawn
     for (i = 0; i < 3; i++){
-        for (j = 0; j < 147; j++){
-            obs_area[(i*148) + j] = (255 & obs_area[(i*148) + (j+1)]);
+        for (j = 0; j < 137; j++){
+            obs_area[(i*138) + j] = (255 & obs_area[(i*138) + (j+1)]);
         }
-        obs_area[(i*148) + 147] = 255;
+        obs_area[(i*138) + 137] = 255;
     }
 }
 
@@ -485,6 +531,8 @@ void labwork( void )
     		*PortEPointer = (*PortEPointer & 0xffffff00); // lets all binary 1s be unchanged except the ones in the last 2 byte //! DEBUG
   		else					//! DEBUG
 			*PortEPointer += 1; //! DEBUG
+
+		timer4counter++;
 
 		if(buttons)
 			move_ufo(buttons);
