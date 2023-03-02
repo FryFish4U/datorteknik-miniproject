@@ -1,2 +1,0 @@
-enableint.S.o: enableint.S
-enableint.S :
